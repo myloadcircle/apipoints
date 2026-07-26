@@ -57,14 +57,10 @@
   </header>
   <div class="container">
     <h1 data-i18n="register.title">Create Account</h1>
-    <p class="subtitle" data-i18n="register.subtitle">Start with 5,000 free credits. No credit card required.</p>
+    <p class="subtitle" data-i18n="register.subtitle">5,000 free credits. No credit card required.</p>
     <div id="error-message" class="error"></div>
     <div id="success-message" class="success"></div>
     <form id="register-form">
-      <div class="form-group">
-        <label data-i18n="register.name">Name</label>
-        <input type="text" id="name" placeholder="Your name" data-i18n-placeholder="register.namePlaceholder" />
-      </div>
       <div class="form-group">
         <label data-i18n="register.email">Email Address</label>
         <input type="email" id="email" placeholder="you@example.com" data-i18n-placeholder="register.emailPlaceholder" required />
@@ -73,7 +69,7 @@
         <label data-i18n="register.password">Password</label>
         <input type="password" id="password" placeholder="Min 8 characters" data-i18n-placeholder="register.passwordPlaceholder" required minlength="8" />
       </div>
-      <button type="submit" class="btn" id="submit-btn" data-i18n="register.submit">Create Account</button>
+      <button type="submit" class="btn" id="submit-btn" data-i18n="register.submit">Create Account — Free</button>
     </form>
     <div class="loading" id="loading"><div class="spinner"></div><span style="margin-left:8px; color:#888;" data-i18n="register.loading">Creating account...</span></div>
     <div class="toggle"><span data-i18n="register.hasAccount">Already have an account?</span> <a href="/login.html" data-i18n="register.loginLink">Login →</a></div>
@@ -84,7 +80,7 @@
     const API = 'https://apipoints-worker.francis-e3b.workers.dev';
     document.getElementById('register-form').addEventListener('submit', async function(e) {
       e.preventDefault();
-      const name = document.getElementById('name').value.trim();
+      const name = '';
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
       const errorDiv = document.getElementById('error-message');

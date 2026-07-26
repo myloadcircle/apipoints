@@ -427,12 +427,27 @@
     </div>
     
     <div class="btns animate animate-delay-4">
-      <a href="#pricing" class="btn btn-primary" data-i18n="hero.cta">Get API Key — Free to Start</a>
-      <a href="#how-it-works" class="btn btn-outline" data-i18n="hero.ctaHow">How it works →</a>
+      <a href="/register.html" class="btn btn-primary" data-i18n="hero.cta">Get API Key — Free to Start</a>
+      <a href="#live-demo" class="btn btn-outline" data-i18n="hero.ctaHow">Try the API now →</a>
     </div>
     <p style="color:#666; font-size:12px; margin-top:16px; animate: fadeIn 1s ease-out 0.5s forwards; opacity:0;" data-i18n="hero.trust">
       ✅ No credit card required • Instant API key • Cancel anytime
     </p>
+    <!-- Social Proof Bar -->
+    <div style="display:flex; gap:24px; justify-content:center; flex-wrap:wrap; margin-top:28px; opacity:0.7;">
+      <div style="display:flex; align-items:center; gap:6px; font-size:12px; color:#888;">
+        <span style="color:var(--lime);">●</span> 38 models tracked
+      </div>
+      <div style="display:flex; align-items:center; gap:6px; font-size:12px; color:#888;">
+        <span style="color:var(--lime);">●</span> 8 providers
+      </div>
+      <div style="display:flex; align-items:center; gap:6px; font-size:12px; color:#888;">
+        <span style="color:var(--lime);">●</span> Hourly updates
+      </div>
+      <div style="display:flex; align-items:center; gap:6px; font-size:12px; color:#888;">
+        <span style="color:var(--lime);">●</span> MCP-native
+      </div>
+    </div>
   </section>
 
   <!-- Metrics -->
@@ -452,6 +467,24 @@
     <div class="metric animate animate-delay-3">
       <div class="num">30d</div>
       <div class="label" data-i18n="metrics.notice">deprecation<br/>notice</div>
+    </div>
+  </section>
+
+  <!-- Live API Demo (No signup required) -->
+  <section class="section" id="live-demo" style="padding:60px 20px; background:rgba(163,230,53,0.03); border-top:1px solid rgba(163,230,53,0.15); border-bottom:1px solid rgba(163,230,53,0.15);">
+    <div style="max-width:800px; margin:0 auto; text-align:center;">
+      <div style="display:inline-block; background:rgba(163,230,53,0.15); border:1px solid rgba(163,230,53,0.3); padding:4px 12px; border-radius:12px; font-size:11px; color:var(--lime); font-weight:600; text-transform:uppercase; letter-spacing:1px; margin-bottom:16px;">Try it now — no signup required</div>
+      <h2 style="font-family:Georgia,serif; font-size:28px; font-weight:700; color:#fff; margin-bottom:12px;">See live LLM pricing in action</h2>
+      <p style="color:#999; font-size:14px; margin-bottom:24px;">Click "Run" to fetch real-time pricing data from our API. No account needed.</p>
+      <div style="background:rgba(17,17,17,0.9); border:1px solid rgba(163,230,53,0.25); border-radius:12px; padding:20px; text-align:left; position:relative;">
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
+          <span style="background:rgba(163,230,53,0.15); color:var(--lime); padding:3px 10px; border-radius:4px; font-size:11px; font-weight:700;">GET</span>
+          <code style="color:var(--lime); font-size:13px; font-family:ui-monospace,monospace;">/api/public/llm-costs</code>
+          <button onclick="runLiveDemo()" id="demo-run-btn" style="margin-left:auto; background:var(--lime); color:#111; border:none; padding:6px 16px; border-radius:6px; font-weight:700; font-size:12px; cursor:pointer; transition:all 0.3s;">Run →</button>
+        </div>
+        <pre id="demo-output" style="margin:0; font-family:ui-monospace,monospace; font-size:12px; color:#aaa; line-height:1.6; max-height:200px; overflow-y:auto; white-space:pre-wrap;">Click "Run" to see live pricing data...</pre>
+      </div>
+      <p style="color:#666; font-size:12px; margin-top:12px;">This is the same data our MCP server and API provide. <a href="/register.html" style="color:var(--lime);">Get an API key</a> for full access.</p>
     </div>
   </section>
 
@@ -720,7 +753,7 @@ print(data["data"]) # Real-time LLM cost intelligence</code></pre>
           <li>3 intelligence endpoints</li>
           <li>Community support</li>
         </ul>
-        <a href="/register.html" class="btn btn-outline" style="color:#ddd;">Get Started Free</a>
+        <a href="/register.html" class="btn btn-primary" style="display:block; text-align:center; font-size:16px; padding:16px;">Get API Key Free →</a>
       </div>
       <div class="plan highlighted animate animate-delay-1">
         <div class="plan-badge">Most Popular</div>
@@ -959,6 +992,30 @@ print(data["data"]) # Real-time LLM cost intelligence</code></pre>
       el.style.animationPlayState = 'paused';
       observer.observe(el);
     });
+
+    // Live API Demo
+    async function runLiveDemo() {
+      const btn = document.getElementById('demo-run-btn');
+      const output = document.getElementById('demo-output');
+      btn.textContent = 'Running...';
+      btn.disabled = true;
+      output.textContent = 'Fetching live pricing data...';
+      try {
+        const res = await fetch('https://apipoints-worker.francis-e3b.workers.dev/api/public/llm-costs');
+        const data = await res.json();
+        const top5 = (data.data || []).slice(0, 5);
+        const formatted = top5.map(m => 
+          `${m.model.padEnd(20)} $${m.input_cost_per_1m.toFixed(2)} in / $${m.output_cost_per_1m.toFixed(2)} out`
+        ).join('\n');
+        output.textContent = `// Live data from APIPoints API\n// ${new Date().toISOString()}\n\n${formatted}\n\n// ... and ${(data.data || []).length - 5} more models`;
+        output.style.color = 'var(--lime-light)';
+      } catch (err) {
+        output.textContent = 'Error fetching data. Please try again.';
+        output.style.color = '#ef4444';
+      }
+      btn.textContent = 'Run →';
+      btn.disabled = false;
+    }
 
     // Handle pricing button clicks - call Worker API to create Stripe session
     function startCheckout(plan) {
