@@ -1,0 +1,189 @@
+openapi: 3.0.3
+info:
+  title: APIPoints Intelligence API
+  description: Real-time LLM pricing, performance benchmarks, deprecation alerts, and cost optimization recommendations for 8+ AI providers.
+  version: 1.0.0
+servers:
+  - url: https://apipoints-worker.francis-e3b.workers.dev
+    description: Production Edge Worker
+paths:
+  /v1/llm-costs:
+    get:
+      summary: Get real-time LLM pricing
+      description: Retrieve list of tracked model-level input/output costs per 1M tokens.
+      parameters:
+        - name: provider
+          in: query
+          schema:
+            type: string
+          description: Filter by provider slug (e.g. openai, anthropic, google)
+        - name: model
+          in: query
+          schema:
+            type: string
+          description: Filter by model name (partial match)
+        - name: max_input_cost
+          in: query
+          schema:
+            type: number
+          description: Max input cost per 1M tokens
+        - name: max_output_cost
+          in: query
+          schema:
+            type: number
+          description: Max output cost per 1M tokens
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ModelPricing'
+                  meta:
+                    $ref: '#/components/schemas/ResponseMeta'
+                  rate_limit:
+                    $ref: '#/components/schemas/RateLimitMeta'
+
+  /v1/model-benchmarks:
+    get:
+      summary: Get model benchmark scores
+      description: Retrieve benchmark performance data (MMLU, HumanEval, MATH, GPQA) comparing top models.
+      parameters:
+        - name: provider
+          in: query
+          schema:
+            type: string
+        - name: model
+          in: query
+          schema:
+            type: string
+        - name: min_mmlu
+          in: query
+          schema:
+            type: number
+        - name: min_human_eval
+          in: query
+          schema:
+            type: number
+      responses:
+        '200':
+          description: Successful response
+
+  /v1/deprecations:
+    get:
+      summary: Get model deprecation notices
+      description: Retrieve 30-day advance deprecation alerts and migration guides.
+      parameters:
+        - name: provider
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [announced, in_progress, completed]
+      responses:
+        '200':
+          description: Successful response
+
+  /v1/providers:
+    get:
+      summary: List tracked providers
+      description: Retrieve meta-information about tracked LLM providers and endpoints.
+      responses:
+        '200':
+          description: Successful response
+
+  /v1/changes:
+    get:
+      summary: Get recent changes
+      description: Retrieve historical pricing increases/decreases and model releases.
+      responses:
+        '200':
+          description: Successful response
+
+  /v1/recommend:
+    get:
+      summary: Get cost recommendations
+      description: Retrieve model and provider recommendations optimized for specific use cases.
+      parameters:
+        - name: use_case
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+
+  /v1/calculate:
+    get:
+      summary: Calculate token costs
+      description: Compute estimated transaction costs for input/output token volumes on a model.
+      parameters:
+        - name: model
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: input_tokens
+          in: query
+          schema:
+            type: integer
+            default: 1000000
+        - name: output_tokens
+          in: query
+          schema:
+            type: integer
+            default: 100000
+      responses:
+        '200':
+          description: Successful response
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: x-api-key
+  schemas:
+    ModelPricing:
+      type: object
+      properties:
+        provider:
+          type: string
+        model:
+          type: string
+        input_cost_per_1m:
+          type: number
+        output_cost_per_1m:
+          type: number
+        context_window:
+          type: integer
+        max_output:
+          type: integer
+        last_updated:
+          type: string
+    ResponseMeta:
+      type: object
+      properties:
+        count:
+          type: integer
+        version:
+          type: string
+        last_updated:
+          type: string
+    RateLimitMeta:
+      type: object
+      properties:
+        remaining:
+          type: integer
+        limit:
+          type: integer
+security:
+  - ApiKeyAuth: []

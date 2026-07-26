@@ -1,0 +1,402 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="index, follow" />
+  <meta name="googlebot" content="index, follow" />
+  <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png" />
+  <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" />
+  <link rel="alternate" hreflang="en" href="https://apipoints.dev/dashboard.html?lang=en" />
+  <link rel="alternate" hreflang="zh" href="https://apipoints.dev/dashboard.html?lang=zh" />
+  <link rel="alternate" hreflang="es" href="https://apipoints.dev/dashboard.html?lang=es" />
+  <link rel="alternate" hreflang="ar" href="https://apipoints.dev/dashboard.html?lang=ar" />
+  <link rel="alternate" hreflang="ja" href="https://apipoints.dev/dashboard.html?lang=ja" />
+  <link rel="alternate" hreflang="de" href="https://apipoints.dev/dashboard.html?lang=de" />
+  <link rel="alternate" hreflang="fr" href="https://apipoints.dev/dashboard.html?lang=fr" />
+  <link rel="alternate" hreflang="pt-BR" href="https://apipoints.dev/dashboard.html?lang=pt-BR" />
+  <link rel="alternate" hreflang="x-default" href="https://apipoints.dev/dashboard.html" />
+  <title>Dashboard — APIPoints</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    :root { --bg:#0a0a0a; --bg2:#111; --lime:#a3e635; --lime-light:#cbe86b; --text:#e9e9e9; --muted:#888; --border:rgba(255,255,255,0.08); }
+    body { background:var(--bg); color:var(--text); font-family:'Inter',system-ui,-apple-system,sans-serif; }
+    a { color:var(--lime); text-decoration:none; }
+    a:hover { text-decoration:underline; }
+    .nav { display:flex; align-items:center; justify-content:space-between; padding:16px 32px; background:rgba(11,11,11,0.9); backdrop-filter:blur(20px); border-bottom:1px solid var(--border); }
+    .brand { display:flex; align-items:center; gap:10px; font-weight:700; font-size:18px; }
+    .brand .dot { width:10px; height:10px; background:var(--lime); border-radius:50%; box-shadow:0 0 15px var(--lime); }
+    .container { max-width:1100px; margin:0 auto; padding:40px 20px; }
+    h1 { font-family:Georgia,serif; font-size:28px; font-weight:700; margin-bottom:4px; color:#fff; }
+    .subtitle { color:var(--muted); font-size:14px; margin-bottom:32px; }
+    .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; margin-bottom:30px; }
+    .card { background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:12px; padding:24px; }
+    .card h3 { font-size:13px; text-transform:uppercase; letter-spacing:1px; color:var(--muted); margin-bottom:8px; }
+    .card .value { font-family:Georgia,serif; font-size:32px; font-weight:700; color:#fff; margin-bottom:4px; }
+    .card .desc { font-size:12px; color:var(--muted); }
+    .section { margin-bottom:32px; }
+    .section-header { display:flex; align-items:center; justify-content:space-between; cursor:pointer; padding:16px 20px; background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:12px; transition:all 0.2s; user-select:none; }
+    .section-header:hover { border-color:var(--lime); }
+    .section-header h2 { font-size:16px; font-weight:600; color:#ddd; }
+    .section-body { padding:20px; border:1px solid var(--border); border-top:none; border-radius:0 0 12px 12px; margin-top:-1px; }
+    .section.collapsed .section-body { display:none; }
+    .section.collapsed .section-header { border-radius:12px; }
+    .arrow { color:var(--muted); font-size:14px; transition:transform 0.2s; }
+    .section.collapsed .arrow { transform:rotate(-90deg); }
+    .btn { padding:8px 16px; border-radius:8px; border:1px solid var(--border); background:transparent; color:#ccc; font-size:13px; cursor:pointer; transition:all 0.3s; }
+    .btn:hover { border-color:var(--lime); color:#fff; }
+    .btn-primary { background:var(--lime); color:#111; border-color:var(--lime); font-weight:600; }
+    .btn-primary:hover { transform:translateY(-1px); box-shadow:0 4px 15px rgba(163,230,53,0.3); }
+    .btn-danger { background:rgba(239,68,68,0.15); color:#ef4444; border-color:rgba(239,68,68,0.3); }
+    .btn-danger:hover { background:rgba(239,68,68,0.25); }
+    .btn-sm { padding:4px 10px; font-size:11px; }
+    .plan-badge { display:inline-block; padding:4px 10px; border-radius:12px; font-size:11px; font-weight:700; margin-left:8px; }
+    .loading { text-align:center; padding:60px; color:var(--muted); }
+    .spinner { display:inline-block; width:24px; height:24px; border:2px solid var(--lime); border-top-color:transparent; border-radius:50%; animation:spin 0.8s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .error { background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); color:#ef4444; padding:12px 16px; border-radius:8px; font-size:13px; margin:20px 0; }
+    .logout { color:#ef4444; cursor:pointer; font-size:14px; }
+    .logout:hover { text-decoration:underline; }
+    table { width:100%; border-collapse:collapse; font-size:13px; }
+    th { text-align:left; padding:10px 12px; color:var(--muted); font-weight:500; font-size:12px; text-transform:uppercase; letter-spacing:0.5px; border-bottom:1px solid var(--border); }
+    td { padding:10px 12px; border-bottom:1px solid rgba(255,255,255,0.04); color:#ccc; }
+    tr:last-child td { border-bottom:none; }
+    .badge { display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600; }
+    .badge-green { background:rgba(163,230,53,0.15); color:var(--lime); }
+    .badge-red { background:rgba(239,68,68,0.15); color:#ef4444; }
+    .badge-gray { background:rgba(136,136,136,0.15); color:#999; }
+    .input { width:100%; padding:8px 12px; border-radius:8px; border:1px solid var(--border); background:rgba(255,255,255,0.05); color:var(--text); font-size:13px; outline:none; transition:border-color 0.2s; }
+    .input:focus { border-color:var(--lime); }
+    .input::placeholder { color:var(--muted); }
+    .inline-flex { display:flex; gap:12px; align-items:end; flex-wrap:wrap; }
+    .flex-1 { flex:1; min-width:120px; }
+    .flex { display:flex; gap:8px; align-items:center; }
+    .mt-2 { margin-top:8px; }
+    .mt-4 { margin-top:16px; }
+    .mb-2 { margin-bottom:8px; }
+    .mb-4 { margin-bottom:16px; }
+    .text-sm { font-size:12px; }
+    .text-xs { font-size:11px; }
+    .text-muted { color:var(--muted); }
+    .text-lime { color:var(--lime); }
+    .font-mono { font-family:'SF Mono','Fira Code','Courier New',monospace; }
+    .overflow-x { overflow-x:auto; }
+    .w-full { width:100%; }
+    .label { display:block; font-size:11px; color:var(--muted); margin-bottom:4px; }
+    .copy-msg { position:fixed; bottom:20px; right:20px; background:rgba(163,230,53,0.9); color:#111; padding:8px 16px; border-radius:8px; font-size:13px; font-weight:600; opacity:0; transition:opacity 0.3s; pointer-events:none; z-index:999; }
+    .copy-msg.show { opacity:1; }
+    .key-new { background:rgba(163,230,53,0.08); border:1px solid rgba(163,230,53,0.25); padding:12px 16px; border-radius:8px; margin-bottom:16px; }
+    .key-new code { display:block; font-family:'SF Mono','Fira Code',monospace; font-size:12px; word-break:break-all; background:rgba(0,0,0,0.3); padding:8px 12px; border-radius:6px; margin-top:6px; border:1px solid var(--border); }
+    .coming-soon { background:rgba(255,255,255,0.02); border:1px dashed var(--border); border-radius:12px; padding:40px; text-align:center; color:var(--muted); }
+    .coming-soon .emoji { font-size:32px; margin-bottom:12px; }
+    @media (max-width:768px) { .grid { grid-template-columns:1fr; } .inline-flex { flex-direction:column; } }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="brand"><span class="dot"></span><span>APIPoints</span></div>
+    <div style="display:flex; gap:16px; align-items:center;">
+      <span id="user-email" style="color:#888; font-size:13px;"></span>
+      <span id="i18n-switcher"></span>
+      <span class="logout" onclick="logout()" data-i18n="nav.logout">Logout</span>
+    </div>
+  </header>
+  <div class="copy-msg" id="copy-msg">Copied!</div>
+  <div class="container">
+    <h1 data-i18n="dashboard.title">Dashboard</h1>
+    <p class="subtitle" data-i18n="dashboard.subtitle">Manage your account, credits, and API keys.</p>
+    <div id="plan-badge" style="display:none; margin-bottom:20px;">
+      <span class="plan-badge" style="background:rgba(163,230,53,0.1); border:1px solid rgba(163,230,53,0.3); color:var(--lime);"><span data-i18n="dashboard.currentPlan">Plan:</span> <span id="current-plan-name">Free</span></span>
+      <span style="margin-left:12px; font-size:13px; color:var(--muted);"><span data-i18n="dashboard.credits">Credits:</span> <strong id="credits-display" style="color:#fff;">0</strong></span>
+      <a href="/dashboard/upgrade.html" style="margin-left:12px; font-size:13px;" data-i18n="dashboard.upgrade">Upgrade →</a>
+    </div>
+    <div id="loading" class="loading"><div class="spinner"></div><div style="margin-top:12px;" data-i18n="dashboard.loading">Loading your dashboard...</div></div>
+    <div id="dashboard-content" style="display:none;">
+      <div class="grid">
+        <div class="card"><h3 data-i18n="dashboard.accountStatus">Account Status</h3><div class="value" data-i18n="dashboard.active">Active</div><div class="desc">Free plan</div></div>
+        <div class="card"><h3 data-i18n="nav.login">Email</h3><div class="value" id="stat-email" style="font-size:16px;">-</div><div class="desc" data-i18n="dashboard.yourEmail">Your login email</div></div>
+        <div class="card"><h3 data-i18n="dashboard.credits">Credits</h3><div class="value" id="stat-credits">0</div><div class="desc" data-i18n="dashboard.creditsAvail">Available credits</div></div>
+      </div>
+      <div id="section-api-keys" class="section collapsed">
+        <div class="section-header" onclick="toggleSection('api-keys')">
+          <h2 data-i18n="dashboard.apiKeys">🔑 API Keys</h2><span class="arrow">▼</span>
+        </div>
+        <div class="section-body">
+          <div class="inline-flex mb-4">
+            <div class="flex-1"><label class="label" data-i18n="dashboard.keyName">Key Name (optional)</label><input class="input" id="key-name-input" data-i18n-placeholder="dashboard.keyNamePlaceholder" placeholder="e.g. Production Key" /></div>
+            <button class="btn btn-primary" onclick="generateKey()" id="gen-key-btn" data-i18n="dashboard.generateKey">Generate New Key</button>
+          </div>
+          <div id="new-key-display" style="display:none;"></div>
+          <div id="keys-loading" class="text-sm text-muted">Loading keys...</div>
+          <div id="keys-empty" style="display:none;" class="text-sm text-muted" data-i18n="dashboard.noKeys">No API keys yet. Generate one above.</div>
+          <div id="keys-table-wrap" style="display:none;" class="overflow-x"></div>
+        </div>
+      </div>
+      <div id="section-credits" class="section collapsed">
+        <div class="section-header" onclick="toggleSection('credits')">
+          <h2 data-i18n="dashboard.creditLedger">💰 Credit Ledger</h2><span class="arrow">▼</span>
+        </div>
+        <div class="section-body">
+          <div id="credits-loading" class="text-sm text-muted">Loading credit history...</div>
+          <div id="credits-empty" style="display:none;" class="text-sm text-muted" data-i18n="dashboard.noCredits">No credit activity yet.</div>
+          <div id="credits-table-wrap" style="display:none;" class="overflow-x"></div>
+        </div>
+      </div>
+      <div id="section-usage" class="section collapsed">
+        <div class="section-header" onclick="toggleSection('usage')">
+          <h2 data-i18n="dashboard.usageMetrics">📊 Usage Metrics</h2><span class="arrow">▼</span>
+        </div>
+        <div class="section-body">
+          <div class="coming-soon"><div class="emoji">📊</div><p data-i18n="dashboard.usageComing">Usage metrics coming soon. Track API calls, tokens, and costs here.</p></div>
+        </div>
+      </div>
+      <div id="section-logs" class="section collapsed">
+        <div class="section-header" onclick="toggleSection('logs')">
+          <h2 data-i18n="dashboard.logs">📋 Logs</h2><span class="arrow">▼</span>
+        </div>
+        <div class="section-body">
+          <div class="coming-soon"><div class="emoji">📋</div><p data-i18n="dashboard.logsComing">Logs coming soon. View API request history and errors here.</p></div>
+        </div>
+      </div>
+      <div id="section-agents" class="section collapsed">
+        <div class="section-header" onclick="toggleSection('agents')">
+          <h2 data-i18n="dashboard.agents">🤖 Agents</h2><span class="arrow">▼</span>
+        </div>
+        <div class="section-body">
+          <div id="agents-loading" class="text-sm text-muted">Loading agents...</div>
+          <div id="agents-empty" style="display:none;" class="text-sm text-muted" data-i18n="dashboard.noAgents">No agents yet.</div>
+          <div id="agents-table-wrap" style="display:none;" class="overflow-x"></div>
+        </div>
+      </div>
+      <div id="section-api-tester" class="section collapsed">
+        <div class="section-header" onclick="toggleSection('api-tester')">
+          <h2 data-i18n="dashboard.apiPlayground">🧪 API Playground</h2><span class="arrow">▼</span>
+        </div>
+        <div class="section-body">
+          <p class="text-sm text-muted mb-4" data-i18n="dashboard.playgroundDesc">Test API endpoints live using your API key. Responses are returned in real-time.</p>
+          <div class="inline-flex mb-4">
+            <div class="flex-1">
+              <label class="label" data-i18n="dashboard.endpoint">Endpoint</label>
+              <select class="input" id="tester-endpoint" onchange="updateTesterCurl()" style="cursor:pointer; appearance:none;">
+                <option value="/v1/llm-costs">GET /v1/llm-costs — LLM Pricing</option>
+                <option value="/v1/model-benchmarks">GET /v1/model-benchmarks — Benchmarks</option>
+                <option value="/v1/deprecations">GET /v1/deprecations — Deprecations</option>
+                <option value="/v1/providers">GET /v1/providers — Providers</option>
+                <option value="/v1/changes">GET /v1/changes — Recent Changes</option>
+                <option value="/v1/recommend">GET /v1/recommend — Cost Recommendations</option>
+                <option value="/v1/calculate">POST /v1/calculate — Cost Calculator</option>
+              </select>
+            </div>
+            <div><label class="label">&nbsp;</label><button class="btn btn-primary" onclick="runApiTest()" id="test-run-btn" data-i18n="dashboard.runRequest">▶ Run Request</button></div>
+          </div>
+          <div style="margin-bottom:16px;">
+            <label class="label">cURL Preview</label>
+            <pre id="tester-curl" class="font-mono text-xs" style="background:rgba(0,0,0,0.3);padding:12px 16px;border-radius:8px;border:1px solid var(--border);overflow-x:auto;color:var(--lime);line-height:1.6;white-space:pre-wrap;"></pre>
+          </div>
+          <div>
+            <label class="label">Response</label>
+            <pre id="tester-response" class="font-mono text-xs" style="background:rgba(0,0,0,0.3);padding:12px 16px;border-radius:8px;border:1px solid var(--border);overflow-x:auto;max-height:400px;overflow-y:auto;color:#ccc;line-height:1.5;min-height:60px;">Click "Run Request" to see the response here.</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="error-message" class="error" style="display:none;"></div>
+  </div>
+  <script src="/i18n.js"></script>
+  <script>
+    const API = 'https://apipoints-worker.francis-e3b.workers.dev';
+    const token = localStorage.getItem('ap_token');
+    const userData = JSON.parse(localStorage.getItem('ap_user') || '{}');
+
+    if (!token) { window.location.href = '/login.html'; }
+
+    function showError(msg) {
+      document.getElementById('error-message').textContent = msg;
+      document.getElementById('error-message').style.display = 'block';
+      document.getElementById('loading').style.display = 'none';
+    }
+    function showCopyMsg() { const el = document.getElementById('copy-msg'); el.classList.add('show'); setTimeout(() => el.classList.remove('show'), 2000); }
+    function logout() { localStorage.removeItem('ap_token'); localStorage.removeItem('ap_user'); window.location.href = '/login.html'; }
+    function toggleSection(name) { const el = document.getElementById('section-' + name); const collapsed = el.classList.toggle('collapsed'); if (!collapsed) { if (name === 'api-keys') loadKeys(); if (name === 'credits') loadCredits(); if (name === 'agents') loadAgents(); } }
+    async function copyToClipboard(text) { try { await navigator.clipboard.writeText(text); } catch { const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); } showCopyMsg(); }
+    function maskKey(key) { if (!key || key.length <= 8) return '••••••••'; return key.slice(0, 4) + '••••••••' + key.slice(-4); }
+    function badge(status) { const map = { 'active':'badge-green','completed':'badge-green','success':'badge-green','revoked':'badge-red','failed':'badge-red','error':'badge-red','running':'badge-gray' }; return '<span class="badge ' + (map[status] || 'badge-gray') + '">' + status + '</span>'; }
+
+    async function apiFetch(path, opts = {}) {
+      const res = await fetch(API + path, { ...opts, headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token, ...(opts.headers || {}) } });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      return data;
+    }
+
+    async function loadProfile() {
+      try {
+        const data = await apiFetch('/api/auth/me');
+        document.getElementById('user-email').textContent = data.email;
+        document.getElementById('stat-email').textContent = data.email;
+        const plan = data.plan || 'free';
+        document.getElementById('current-plan-name').textContent = plan.charAt(0).toUpperCase() + plan.slice(1);
+        document.getElementById('plan-badge').style.display = 'block';
+        document.getElementById('credits-display').textContent = (data.credits || 0).toLocaleString();
+        document.getElementById('stat-credits').textContent = (data.credits || 0).toLocaleString();
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('dashboard-content').style.display = 'block';
+      } catch (e) { showError('Session expired. Please login again.'); setTimeout(() => { window.location.href = '/login.html'; }, 2000); }
+    }
+
+    async function loadKeys() {
+      document.getElementById('keys-loading').style.display = 'block';
+      document.getElementById('keys-empty').style.display = 'none';
+      document.getElementById('keys-table-wrap').style.display = 'none';
+      try {
+        const data = await apiFetch('/api/api-keys/list');
+        const keys = data.keys || [];
+        document.getElementById('keys-loading').style.display = 'none';
+        if (keys.length === 0) { document.getElementById('keys-empty').style.display = 'block'; return; }
+        let html = '<table><thead><tr><th>Name</th><th>Key</th><th>Created</th><th>Status</th></tr></thead><tbody>';
+        keys.forEach(k => {
+          html += '<tr><td>' + (k.key_name || '<span class="text-muted">Unnamed</span>') + '</td><td><code class="font-mono text-xs" style="background:rgba(0,0,0,0.3);padding:2px 6px;border-radius:4px;">' + maskKey(k.key_prefix) + '</code></td><td class="text-xs text-muted">' + new Date(k.created_at).toLocaleDateString() + '</td><td>' + badge(k.active ? 'active' : 'revoked') + '</td></tr>';
+        });
+        html += '</tbody></table>';
+        document.getElementById('keys-table-wrap').innerHTML = html;
+        document.getElementById('keys-table-wrap').style.display = 'block';
+      } catch (e) { document.getElementById('keys-loading').textContent = 'Failed to load keys: ' + e.message; }
+    }
+
+    async function generateKey() {
+      const btn = document.getElementById('gen-key-btn');
+      btn.disabled = true; btn.textContent = 'Generating...';
+      try {
+        const keyName = document.getElementById('key-name-input').value;
+        const data = await apiFetch('/api/api-keys/create', { method: 'POST', body: JSON.stringify({ name: keyName || null }) });
+        document.getElementById('key-name-input').value = '';
+        document.getElementById('new-key-display').innerHTML =
+          '<div class="key-new"><div class="flex" style="justify-content:space-between;align-items:start;"><div><strong style="font-size:13px;">New key generated</strong><p class="text-xs text-muted mt-2">Copy it now — it will not be shown again</p></div><button class="btn btn-sm btn-primary" onclick="copyToClipboard(\'' + data.key + '\');this.parentElement.parentElement.style.display=\'none\'">Copy</button></div><code>' + data.key + '</code></div>';
+        document.getElementById('new-key-display').style.display = 'block';
+        await loadKeys();
+      } catch (e) { showError('Failed to generate key: ' + e.message); }
+      btn.disabled = false; btn.textContent = 'Generate New Key';
+    }
+
+    async function loadCredits() {
+      document.getElementById('credits-loading').style.display = 'block';
+      document.getElementById('credits-empty').style.display = 'none';
+      document.getElementById('credits-table-wrap').style.display = 'none';
+      try {
+        const data = await apiFetch('/api/credits/ledger');
+        const ledger = data.ledger || [];
+        document.getElementById('credits-loading').style.display = 'none';
+        if (ledger.length === 0) { document.getElementById('credits-empty').style.display = 'block'; return; }
+        let html = '<table><thead><tr><th>Date</th><th>Type</th><th>Amount</th><th>Description</th></tr></thead><tbody>';
+        ledger.forEach(e => {
+          const sign = e.amount > 0 ? '+' : '';
+          html += '<tr><td class="text-xs text-muted">' + new Date(e.created_at).toLocaleString() + '</td><td><span class="badge badge-gray">' + e.type + '</span></td><td style="color:' + (e.amount > 0 ? 'var(--lime)' : '#ef4444') + ';">' + sign + e.amount.toLocaleString() + '</td><td class="text-xs">' + (e.description || '') + '</td></tr>';
+        });
+        html += '</tbody></table>';
+        document.getElementById('credits-table-wrap').innerHTML = html;
+        document.getElementById('credits-table-wrap').style.display = 'block';
+      } catch (e) { document.getElementById('credits-loading').textContent = 'Failed to load credits: ' + e.message; }
+    }
+
+    async function loadAgents() {
+      document.getElementById('agents-loading').style.display = 'block';
+      document.getElementById('agents-empty').style.display = 'none';
+      document.getElementById('agents-table-wrap').style.display = 'none';
+      try {
+        const data = await apiFetch('/api/agents/list');
+        const agents = data.agents || [];
+        document.getElementById('agents-loading').style.display = 'none';
+        if (agents.length === 0) { document.getElementById('agents-empty').style.display = 'block'; return; }
+        let html = '<table><thead><tr><th>Name</th><th>Type</th><th>Status</th><th>Created</th><th>Actions</th></tr></thead><tbody>';
+        agents.forEach(a => {
+          html += '<tr><td>' + a.name + '</td><td class="text-xs">' + (a.type || '-') + '</td><td>' + badge(a.status || 'active') + '</td><td class="text-xs text-muted">' + new Date(a.created_at).toLocaleDateString() + '</td><td><button class="btn btn-sm btn-danger" onclick="deleteAgent(\'' + a.id + '\')">Delete</button></td></tr>';
+        });
+        html += '</tbody></table>';
+        document.getElementById('agents-table-wrap').innerHTML = html;
+        document.getElementById('agents-table-wrap').style.display = 'block';
+      } catch (e) { document.getElementById('agents-loading').textContent = 'Failed to load agents: ' + e.message; }
+    }
+
+    async function deleteAgent(id) {
+      if (!confirm('Delete this agent?')) return;
+      try { await apiFetch('/api/agents/' + id, { method: 'DELETE' }); await loadAgents(); } catch (e) { showError('Failed to delete agent: ' + e.message); }
+    }
+
+    loadProfile();
+
+    // API Playground
+    let apiKeyCache = '';
+
+    async function loadApiKeyForTester() {
+      try {
+        const data = await apiFetch('/api/api-keys/list');
+        const keys = (data.keys || []).filter(k => k.active);
+        if (keys.length > 0) {
+          // We can't get the full key back, so prompt user
+          const stored = localStorage.getItem('ap_test_key');
+          if (stored) {
+            apiKeyCache = stored;
+            updateTesterCurl();
+          }
+        }
+      } catch (e) { /* silent */ }
+    }
+
+    function updateTesterCurl() {
+      const endpoint = document.getElementById('tester-endpoint').value;
+      const key = apiKeyCache || 'YOUR_API_KEY';
+      const isPost = endpoint === '/v1/calculate';
+      const method = isPost ? '-X POST' : '';
+      const body = isPost ? ' \\\n  -H "Content-Type: application/json" \\\n  -d \'{ "model": "gpt-4o", "input_tokens": 1000, "output_tokens": 500 }\'' : '';
+      document.getElementById('tester-curl').textContent =
+        `curl ${method} ${API}${endpoint} \\\n  -H "x-api-key: ${key}"${body}`;
+    }
+
+    async function runApiTest() {
+      const btn = document.getElementById('test-run-btn');
+      const responseEl = document.getElementById('tester-response');
+      const endpoint = document.getElementById('tester-endpoint').value;
+      btn.disabled = true; btn.textContent = '⏳ Sending...';
+      responseEl.style.color = '#888';
+      responseEl.textContent = 'Sending request...';
+
+      // If no API key cached, ask for one
+      if (!apiKeyCache) {
+        const key = prompt('Enter your API key (al_live_...) to test endpoints:');
+        if (!key) { btn.disabled = false; btn.textContent = '▶ Run Request'; responseEl.textContent = 'Request cancelled.'; return; }
+        apiKeyCache = key;
+        localStorage.setItem('ap_test_key', key);
+        updateTesterCurl();
+      }
+
+      const isPost = endpoint === '/v1/calculate';
+      const opts = {
+        method: isPost ? 'POST' : 'GET',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': apiKeyCache }
+      };
+      if (isPost) {
+        opts.body = JSON.stringify({ model: 'gpt-4o', input_tokens: 1000, output_tokens: 500 });
+      }
+
+      try {
+        const start = performance.now();
+        const res = await fetch(API + endpoint, opts);
+        const elapsed = Math.round(performance.now() - start);
+        const data = await res.json();
+        const formatted = JSON.stringify(data, null, 2);
+        responseEl.style.color = res.ok ? '#ccc' : '#ef4444';
+        responseEl.textContent = `// ${res.status} ${res.statusText} — ${elapsed}ms\n\n` + formatted;
+      } catch (e) {
+        responseEl.style.color = '#ef4444';
+        responseEl.textContent = 'Error: ' + e.message;
+      }
+      btn.disabled = false; btn.textContent = '▶ Run Request';
+    }
+
+    loadApiKeyForTester();
+    updateTesterCurl();
+  </script>
+</body>
+</html>

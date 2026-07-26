@@ -1,0 +1,94 @@
+{
+  "mcpServers": {
+    "apipoints": {
+      "name": "APIPoints",
+      "description": "Real-time AI operations intelligence — LLM costs, model benchmarks, deprecations, providers, changes, and cost recommendations",
+      "version": "1.0.0",
+      "homepage": "https://apipoints.dev",
+      "tools": [
+        {
+          "name": "get_llm_costs",
+          "description": "Get real-time LLM pricing per 1M tokens across all providers (OpenAI, Anthropic, Google, Mistral, Meta, DeepSeek, Groq, Cohere). Supports filters for provider, model name, max_input_cost, max_output_cost.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "provider": { "type": "string", "description": "Filter by provider slug" },
+              "model": { "type": "string", "description": "Filter by model name (partial match)" },
+              "max_input_cost": { "type": "number", "description": "Maximum input cost per 1M tokens" },
+              "max_output_cost": { "type": "number", "description": "Maximum output cost per 1M tokens" }
+            }
+          }
+        },
+        {
+          "name": "get_model_benchmarks",
+          "description": "Get model benchmark scores (MMLU, HumanEval, MATH, GPQA, etc.) across top models.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "provider": { "type": "string", "description": "Filter by provider" },
+              "model": { "type": "string", "description": "Filter by model name" },
+              "min_mmlu": { "type": "number", "description": "Minimum MMLU score" },
+              "min_human_eval": { "type": "number", "description": "Minimum HumanEval score" }
+            }
+          }
+        },
+        {
+          "name": "get_deprecations",
+          "description": "Get active and upcoming model deprecations. Crucial for proactive agent migration.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "provider": { "type": "string", "description": "Filter by provider" },
+              "status": { "type": "string", "enum": ["announced", "in_progress", "completed"] }
+            }
+          }
+        },
+        {
+          "name": "get_providers",
+          "description": "Get all tracked LLM providers with capabilities and website info.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "provider": { "type": "string", "description": "Filter by provider slug" }
+            }
+          }
+        },
+        {
+          "name": "get_changes",
+          "description": "Get recent pricing changes, new model releases, and deprecation announcements.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "provider": { "type": "string", "description": "Filter by provider" },
+              "type": { "type": "string", "enum": ["price_decrease", "price_increase", "new_model", "deprecation", "feature_update"] },
+              "since": { "type": "string", "description": "Only changes after this date (YYYY-MM-DD)" }
+            }
+          }
+        },
+        {
+          "name": "get_recommendations",
+          "description": "Get cost optimization recommendations by use case (e.g. customer support, coding, reasoning).",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "use_case": { "type": "string", "description": "Filter by use case keyword" }
+            }
+          }
+        },
+        {
+          "name": "calculate_cost",
+          "description": "Estimate API costs for a specific model and token volume.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "model": { "type": "string", "description": "Model name" },
+              "input_tokens": { "type": "number", "description": "Number of input tokens" },
+              "output_tokens": { "type": "number", "description": "Number of output tokens" }
+            },
+            "required": ["model"]
+          }
+        }
+      ]
+    }
+  }
+}

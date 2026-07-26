@@ -1,0 +1,19 @@
+APIPoints Build Info
+====================
+Last Updated: 2026-07-25
+
+Pricing Tiers:
+- Free: $0/month (5K credits, 10 req/min)
+- Starter: $49/month (5M credits, 60 req/min)
+- Growth: $149/month (20M credits, 300 req/min)
+- Enterprise: $499/month (50M credits, 1000 req/min)
+
+Infrastructure:
+- Worker: https://apipoints-worker.francis-e3b.workers.dev
+- Static Site: https://apipoints.dev (Cloudflare Pages)
+- D1 Database: APIPoints-db (2b416129-eddb-44f8-bce2-b16687fd3c37)
+
+Stripe Products:
+- Starter: prod_UwvovE0uWkexVd → price_1Tx1wh3C6smqFKLawGRLjLBP ($49/mo)
+- Growth: prod_Uwvog8qQGVVRzI → price_1Tx1x03C6smqFKLayKowvU4G ($149/mo)
+- Enterprise: prod_UwvokQjAUz12QH → price_1Tx1x13C6smqFKLaO5Wlr04A ($499/mo)

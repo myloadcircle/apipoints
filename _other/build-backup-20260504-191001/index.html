@@ -1,0 +1,637 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>APIPoints — AI Operations Intelligence</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    :root {
+      --bg: #0a0a0a;
+      --bg2: #111111;
+      --lime: #a3e635;
+      --lime-light: #cbe86b;
+      --text: #e9e9e9;
+      --muted: #888;
+      --border: rgba(255,255,255,0.08);
+    }
+    html { scroll-behavior: smooth; }
+    body { background: var(--bg); color: var(--text); font-family: 'Inter', system-ui, -apple-system, sans-serif; overflow-x: hidden; }
+    a { color: inherit; text-decoration: none; }
+    
+    /* Animations */
+    @keyframes fadeInUp {
+      from { opacity:0; transform: translateY(30px); }
+      to { opacity:1; transform: translateY(0); }
+    }
+    @keyframes fadeIn {
+      from { opacity:0; }
+      to { opacity:1; }
+    }
+    @keyframes pulse {
+      0%, 100% { opacity:1; }
+      50% { opacity:0.5; }
+    }
+    @keyframes slideDown {
+      from { transform: translateY(-100%); opacity:0; }
+      to { transform: translateY(0); opacity:1; }
+    }
+    .animate { animation: fadeInUp 0.8s ease-out forwards; opacity:0; }
+    .animate-delay-1 { animation-delay: 0.1s; }
+    .animate-delay-2 { animation-delay: 0.2s; }
+    .animate-delay-3 { animation-delay: 0.3s; }
+    .animate-delay-4 { animation-delay: 0.4s; }
+    
+    /* Nav */
+    .nav { 
+      display:flex; align-items:center; justify-content:space-between; 
+      padding:16px 32px; background:rgba(11,11,11,0.85); 
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border-bottom:1px solid var(--border); 
+      position:fixed; top:0; left:0; right:0; z-index:1000; 
+      animation: slideDown 0.5s ease-out;
+    }
+    .brand { display:flex; align-items:center; gap:10px; font-weight:700; font-size:18px; }
+    .brand .dot { 
+      width:10px; height:10px; background:var(--lime); border-radius:50%; 
+      box-shadow: 0 0 20px var(--lime), 0 0 40px rgba(163,230,53,0.3);
+      animation: pulse 2s infinite;
+    }
+    .nav-links { display:flex; gap:32px; align-items:center; color:#c9c9c9; font-size:15px; }
+    .nav-links a { position:relative; transition: color 0.3s; }
+    .nav-links a::after {
+      content:''; position:absolute; bottom:-4px; left:0; width:0; height:2px;
+      background:var(--lime); transition: width 0.3s;
+    }
+    .nav-links a:hover { color:#fff; }
+    .nav-links a:hover::after { width:100%; }
+    .cta { 
+      background:var(--lime); color:#111; padding:10px 20px; border-radius:8px; 
+      font-weight:700; font-size:14px; transition: all 0.3s; position:relative; overflow:hidden;
+    }
+    .cta:hover { 
+      background:var(--lime-light); transform:translateY(-2px); 
+      box-shadow: 0 8px 25px rgba(163,230,53,0.4);
+    }
+    
+    /* Hero */
+    .hero { 
+      text-align:center; padding:160px 20px 100px; position:relative; overflow:hidden;
+      background: radial-gradient(ellipse at 50% 0%, rgba(163,230,53,0.08) 0%, transparent 60%);
+    }
+    .hero::before {
+      content:''; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+      width:800px; height:800px; background:radial-gradient(circle, rgba(163,230,53,0.05) 0%, transparent 70%);
+      pointer-events:none;
+    }
+    .hero .subtitle { 
+      color:var(--lime); font-size:13px; letter-spacing:4px; text-transform:uppercase; 
+      margin-bottom:16px; font-weight:600; position:relative; display:inline-block;
+    }
+    .hero .subtitle::before, .hero .subtitle::after {
+      content:''; position:absolute; top:50%; width:40px; height:1px; background:var(--lime); opacity:0.4;
+    }
+    .hero .subtitle::before { right:calc(100% + 16px); }
+    .hero .subtitle::after { left:calc(100% + 16px); }
+    .hero h1 { 
+      font-family: Georgia, 'Times New Roman', serif; font-size: clamp(52px, 10vw, 120px); 
+      line-height:0.95; font-weight:900; margin-bottom:24px; position:relative;
+      background: linear-gradient(135deg, #fff 0%, var(--lime-light) 50%, var(--lime) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero h1 .highlight { -webkit-text-fill-color: var(--lime-light); }
+    .hero .lead { 
+      color:#b0b0b0; font-size:20px; max-width:740px; margin:0 auto 40px; 
+      line-height:1.7; position:relative;
+    }
+    .btns { display:flex; gap:20px; justify-content:center; flex-wrap:wrap; position:relative; }
+    .btn { 
+      padding:16px 32px; border-radius:10px; font-weight:700; font-size:15px; 
+      display:inline-block; transition: all 0.4s cubic-bezier(0.4,0,0.2,1); position:relative; overflow:hidden;
+    }
+    .btn-primary { 
+      background:linear-gradient(135deg, var(--lime) 0%, var(--lime-light) 100%); 
+      color:#111; box-shadow: 0 4px 15px rgba(163,230,53,0.3);
+    }
+    .btn-primary:hover { 
+      transform:translateY(-3px); 
+      box-shadow: 0 12px 40px rgba(163,230,53,0.5);
+    }
+    .btn-outline { 
+      background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.2); 
+      color:#ddd; backdrop-filter:blur(10px);
+    }
+    .btn-outline:hover { 
+      background:rgba(255,255,255,0.1); border-color:var(--lime); color:#fff;
+      transform:translateY(-3px);
+    }
+    
+    /* Metrics */
+    .metrics { 
+      display:grid; grid-template-columns:repeat(4,1fr); gap:0; 
+      max-width:1100px; margin:-40px auto 0; position:relative; z-index:10;
+      background:rgba(17,17,17,0.8); backdrop-filter:blur(20px);
+      border:1px solid var(--border); border-radius:16px; padding:32px 0;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+    .metric { padding:20px 12px; text-align:center; position:relative; }
+    .metric:not(:last-child)::after {
+      content:''; position:absolute; right:0; top:20%; height:60%; width:1px; background:var(--border);
+    }
+    .metric .num { 
+      font-family:Georgia,serif; font-size:36px; font-weight:700; color:var(--lime); 
+      margin-bottom:8px; text-shadow: 0 0 20px rgba(163,230,53,0.5);
+    }
+    .metric .label { 
+      font-size:11px; letter-spacing:1.5px; text-transform:uppercase; 
+      color:#999; line-height:1.4;
+    }
+    
+    /* Code block */
+    .code-block { padding:60px 20px; text-align:center; position:relative; }
+    .code-block::before {
+      content:''; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+      width:600px; height:200px; background:radial-gradient(ellipse, rgba(163,230,53,0.08) 0%, transparent 70%);
+    }
+    .code-block pre { 
+      display:inline-block; text-align:left; background:rgba(17,17,17,0.9); 
+      padding:24px 28px; border-radius:12px; border:1px solid rgba(163,230,53,0.2);
+      color:#ddd; font-family:ui-monospace,SFMono-Regular,Monaco,monospace; 
+      font-size:14px; line-height:1.8; position:relative;
+      box-shadow: 0 0 40px rgba(163,230,53,0.1);
+    }
+    .code-block pre::before {
+      content:'curl'; color:var(--lime); font-weight:700;
+    }
+    
+    /* Sections */
+    .section { padding:100px 20px; }
+    .section-dark { background:rgba(15,15,15,0.6); }
+    .section-title { 
+      text-align:center; font-size:32px; font-weight:700; margin-bottom:12px; 
+      background: linear-gradient(135deg, #fff 0%, var(--lime-light) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .section-subtitle { 
+      text-align:center; color:#999; max-width:700px; margin:0 auto 60px; 
+      font-size:16px; line-height:1.7;
+    }
+    
+    /* Features grid */
+    .features-grid { 
+      display:grid; grid-template-columns:repeat(4,1fr); gap:20px; 
+      max-width:1200px; margin:0 auto; 
+    }
+    .feature-card { 
+      background:rgba(255,255,255,0.02); border:1px solid var(--border); 
+      border-radius:16px; padding:28px; transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
+      position:relative; overflow:hidden;
+    }
+    .feature-card::before {
+      content:''; position:absolute; top:0; left:0; right:0; height:2px;
+      background:linear-gradient(90deg, transparent, var(--lime), transparent);
+      opacity:0; transition: opacity 0.4s;
+    }
+    .feature-card:hover { 
+      border-color:rgba(163,230,53,0.3); transform:translateY(-8px);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4), 0 0 30px rgba(163,230,53,0.1);
+    }
+    .feature-card:hover::before { opacity:1; }
+    .feature-icon { 
+      width:52px; height:52px; border-radius:14px; display:flex; 
+      align-items:center; justify-content:center; margin-bottom:18px; font-size:24px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    }
+    .feature-card h3 { font-size:16px; font-weight:600; margin-bottom:10px; color:#eee; }
+    .feature-card p { font-size:13px; color:#888; line-height:1.7; }
+    
+    /* How it works */
+    .steps { display:grid; grid-template-columns:repeat(3,1fr); gap:28px; max-width:900px; margin:0 auto; }
+    .step { 
+      background:rgba(255,255,255,0.02); border:1px solid var(--border); 
+      border-radius:16px; padding:40px 28px; text-align:center; position:relative;
+      transition: all 0.4s;
+    }
+    .step:hover { transform:translateY(-5px); border-color:rgba(163,230,53,0.3); }
+    .step-num { 
+      position:absolute; top:-16px; left:50%; transform:translateX(-50%); 
+      width:36px; height:36px; background:linear-gradient(135deg, var(--lime), var(--lime-light)); 
+      color:#111; border-radius:50%; display:flex; align-items:center; justify-content:center; 
+      font-weight:700; font-size:14px; box-shadow: 0 4px 15px rgba(163,230,53,0.4);
+    }
+    .step-icon { font-size:36px; margin:20px 0; }
+    .step h3 { font-size:18px; font-weight:600; margin-bottom:12px; }
+    .step p { font-size:14px; color:#888; line-height:1.7; }
+    
+    /* Endpoints */
+    .endpoints-list { max-width:800px; margin:0 auto; }
+    .endpoint { 
+      display:flex; align-items:center; gap:16px; background:rgba(255,255,255,0.02); 
+      border:1px solid var(--border); border-radius:10px; padding:18px 22px; margin-bottom:14px;
+      transition: all 0.3s;
+    }
+    .endpoint:hover { border-color:rgba(163,230,53,0.3); background:rgba(163,230,53,0.03); }
+    .method { 
+      padding:5px 12px; border-radius:5px; font-size:12px; font-weight:700; 
+      text-transform:uppercase; flex-shrink:0;
+    }
+    .method.get { background:rgba(163,230,53,0.15); color:var(--lime); }
+    .endpoint code { 
+      color:var(--lime); font-family:ui-monospace,monospace; font-size:15px; 
+      font-weight:500;
+    }
+    .endpoint p { color:#777; font-size:13px; margin-left:auto; text-align:right; }
+    
+    /* Pricing */
+    .pricing-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:24px; max-width:1000px; margin:0 auto; }
+    .plan { 
+      background:rgba(255,255,255,0.02); border:1px solid var(--border); 
+      border-radius:16px; padding:36px 28px; text-align:left; position:relative;
+      transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
+    }
+    .plan.highlighted { 
+      border-color:rgba(163,230,53,0.4); background:rgba(163,230,53,0.05);
+      box-shadow: 0 0 40px rgba(163,230,53,0.1);
+    }
+    .plan:hover { transform:translateY(-8px); box-shadow: 0 20px 50px rgba(0,0,0,0.4); }
+    .plan-badge { 
+      position:absolute; top:-14px; left:50%; transform:translateX(-50%); 
+      background:linear-gradient(135deg, var(--lime), var(--lime-light)); 
+      color:#111; padding:6px 16px; border-radius:20px; font-size:12px; font-weight:700;
+      box-shadow: 0 4px 15px rgba(163,230,53,0.4);
+    }
+    .plan-name { font-size:13px; text-transform:uppercase; letter-spacing:1.5px; color:#888; margin-bottom:10px; }
+    .plan-price { font-family:Georgia,serif; font-size:40px; font-weight:900; color:#fff; margin-bottom:6px; }
+    .plan-price .per { font-size:16px; color:#666; font-weight:400; }
+    .plan-desc { font-size:14px; color:#888; margin-bottom:24px; line-height:1.6; }
+    .plan-features { list-style:none; margin-bottom:28px; }
+    .plan-features li { 
+      font-size:14px; color:#bbb; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.04);
+    }
+    .plan-features li::before { content:"✓ "; color:var(--lime); font-weight:700; margin-right:10px; }
+    .plan .btn { display:block; text-align:center; }
+    
+    /* Footer */
+    .footer { border-top:1px solid var(--border); padding:60px 20px 30px; }
+    .footer-grid { 
+      display:grid; grid-template-columns:2fr 1fr 1fr 1fr; gap:50px; 
+      max-width:1200px; margin:0 auto; 
+    }
+    .footer-brand { font-weight:700; font-size:18px; display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+    .footer-brand .dot { 
+      width:10px; height:10px; background:var(--lime); border-radius:50%;
+      box-shadow: 0 0 10px var(--lime);
+    }
+    .footer p { color:#777; font-size:13px; line-height:1.7; }
+    .footer h4 { font-size:14px; font-weight:600; margin-bottom:20px; color:#ddd; }
+    .footer ul { list-style:none; }
+    .footer li { margin-bottom:10px; }
+    .footer a { color:#666; font-size:13px; transition: color 0.3s; }
+    .footer a:hover { color:var(--lime); }
+    .footer-bottom { 
+      border-top:1px solid var(--border); margin-top:50px; padding-top:24px; 
+      display:flex; justify-content:space-between; align-items:center; 
+      max-width:1200px; margin-left:auto; margin-right:auto; 
+    }
+    .footer-bottom p { font-size:13px; color:#555; }
+    .footer-badge { 
+      display:inline-flex; align-items:center; gap:8px; background:rgba(163,230,53,0.08); 
+      padding:8px 16px; border-radius:20px; font-size:12px; color:#888;
+      border:1px solid rgba(163,230,53,0.2);
+    }
+    .footer-badge .dot { color:var(--lime); }
+    
+    /* Responsive */
+    @media (max-width:1024px) {
+      .features-grid { grid-template-columns:repeat(2,1fr); }
+    }
+    @media (max-width:900px) {
+      .pricing-grid { grid-template-columns:1fr; max-width:500px; }
+      .steps { grid-template-columns:1fr; }
+      .footer-grid { grid-template-columns:1fr 1fr; gap:30px; }
+      .metrics { grid-template-columns:repeat(2,1fr); margin-top:0; }
+      .metric:nth-child(2)::after { display:none; }
+    }
+    @media (max-width:600px) {
+      .nav-links { display:none; }
+      .features-grid { grid-template-columns:1fr; }
+      .hero h1 { font-size:48px; }
+      .hero { padding:120px 20px 80px; }
+      .btns { flex-direction:column; align-items:center; }
+      .metrics { grid-template-columns:1fr 1fr; }
+      .footer-grid { grid-template-columns:1fr; }
+      .footer-bottom { flex-direction:column; gap:16px; text-align:center; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="nav">
+    <div class="brand">
+      <span class="dot"></span>
+      <span>APIPoints</span>
+    </div>
+    <nav class="nav-links">
+      <a href="#endpoints">Endpoints</a>
+      <a href="#features">Live Prices</a>
+      <a href="#pricing">Pricing</a>
+    </nav>
+    <a href="#get-api-key" class="cta">Get API Key</a>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="subtitle animate">AI OPERATIONS INTELLIGENCE</div>
+    <h1 class="animate animate-delay-1">Stop flying blind<br/>on your <span class="highlight">AI costs</span>.</h1>
+    <p class="lead animate animate-delay-2">Real-time LLM pricing, model benchmarks, and deprecation alerts — delivered via MCP-native API.</p>
+    <div class="btns animate animate-delay-3">
+      <a href="#pricing" class="btn btn-primary">Start for $99/mo</a>
+      <a href="#endpoints" class="btn btn-outline">View endpoints →</a>
+    </div>
+  </section>
+
+  <!-- Metrics -->
+  <section class="metrics">
+    <div class="metric animate">
+      <div class="num">8</div>
+      <div class="label">LLM providers<br/>tracked</div>
+    </div>
+    <div class="metric animate animate-delay-1">
+      <div class="num">5</div>
+      <div class="label">intelligence<br/>endpoints</div>
+    </div>
+    <div class="metric animate animate-delay-2">
+      <div class="num">&lt;1h</div>
+      <div class="label">price update<br/>latency</div>
+    </div>
+    <div class="metric animate animate-delay-3">
+      <div class="num">30d</div>
+      <div class="label">deprecation<br/>notice</div>
+    </div>
+  </section>
+
+  <!-- Code Block -->
+  <section class="code-block">
+    <pre><code>curl https://APIPoints-api.APIPoints.workers.dev/v1/llm-costs \
+-H "x-api-key: al_live_..."</code></pre>
+  </section>
+
+  <!-- Features -->
+  <section class="section" id="features">
+    <h2 class="section-title">Operational Intelligence for AI Systems</h2>
+    <p class="section-subtitle">Real-time LLM pricing, cross-provider comparisons, and model-level benchmark data delivered via MCP-native API endpoints.</p>
+    <div class="features-grid">
+      <div class="feature-card animate">
+        <div class="feature-icon" style="background:linear-gradient(135deg,#3b82f6,#06b6d4);">📊</div>
+        <h3>Live LLM Pricing</h3>
+        <p>Track 8+ LLM providers with normalised cost per 1M tokens. Input/output pricing, model IDs and versions. Hourly updates.</p>
+      </div>
+      <div class="feature-card animate animate-delay-1">
+        <div class="feature-icon" style="background:linear-gradient(135deg,#22c55e,#10b981);">🔌</div>
+        <h3>Intelligence Endpoints</h3>
+        <p>Access /v1/llm-costs, /v1/model-benchmarks, /v1/deprecations, /v1/providers, /v1/changes via REST API.</p>
+      </div>
+      <div class="feature-card animate animate-delay-2">
+        <div class="feature-icon" style="background:linear-gradient(135deg,#f97316,#ef4444);">⚠️</div>
+        <h3>Deprecation Alerts</h3>
+        <p>30-day advance notice for provider and model-level deprecations. Delivered via API for proactive management.</p>
+      </div>
+      <div class="feature-card animate animate-delay-3">
+        <div class="feature-icon" style="background:linear-gradient(135deg,#a855f7,#ec4899);">🔗</div>
+        <h3>MCP-Native Integration</h3>
+        <p>Built for Claude MCP, Cursor MCP, Windsurf MCP. Any MCP-enabled agent can access intelligence endpoints.</p>
+      </div>
+      <div class="feature-card animate animate-delay-1">
+        <div class="feature-icon" style="background:linear-gradient(135deg,#eab308,#f97316);">⚡</div>
+        <h3>Real-Time Updates</h3>
+        <p>Hourly price updates across all providers. Stay current with the latest LLM pricing changes as they happen.</p>
+      </div>
+      <div class="feature-card animate animate-delay-2">
+        <div class="feature-icon" style="background:linear-gradient(135deg,#14b8a6,#22c55e);">🔑</div>
+        <h3>API Key System</h3>
+        <p>Secure key generation with usage tracking. Tiered access levels for Starter, Pro, and Scale plans.</p>
+      </div>
+      <div class="feature-card animate animate-delay-3">
+        <div class="feature-icon" style="background:linear-gradient(135deg,#6366f1,#a855f7);">📈</div>
+        <h3>Model Benchmarks</h3>
+        <p>Access performance benchmarks across models. Compare quality, speed, and cost metrics in one place.</p>
+      </div>
+      <div class="feature-card animate animate-delay-4">
+        <div class="feature-icon" style="background:linear-gradient(135deg,#0ea5e9,#3b82f6);">📡</div>
+        <h3>Provider Change Tracking</h3>
+        <p>Monitor pricing changes, new model releases, and provider updates. Historical data for cost analysis.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section class="section section-dark" id="how-it-works">
+    <h2 class="section-title">How APIPoints Works</h2>
+    <p class="section-subtitle">Simple API access to real-time AI operations intelligence. No infrastructure to manage.</p>
+    <div class="steps">
+      <div class="step animate">
+        <div class="step-num">1</div>
+        <div class="step-icon">🔑</div>
+        <h3>Get API Key</h3>
+        <p>Sign up and generate your API key. Starter plan includes full access to all intelligence endpoints.</p>
+      </div>
+      <div class="step animate animate-delay-1">
+        <div class="step-num">2</div>
+        <div class="step-icon">📊</div>
+        <h3>Query Intelligence</h3>
+        <p>Access real-time LLM pricing, model benchmarks, and deprecation alerts via REST API or MCP.</p>
+      </div>
+      <div class="step animate animate-delay-2">
+        <div class="step-num">3</div>
+        <div class="step-icon">🔗</div>
+        <h3>Integrate via MCP</h3>
+        <p>Connect Claude, Cursor, or Windsurf via MCP-native endpoints. Get intelligence directly in your workflow.</p>
+      </div>
+    </div>
+    <p style="text-align:center; margin-top:50px; color:#888; font-size:14px;">
+      <span style="color:var(--lime);">Hourly updates</span> • <span style="color:var(--lime);">8+ providers</span> • <span style="color:var(--lime);">MCP-native</span>
+    </p>
+  </section>
+
+  <!-- Endpoints -->
+  <section class="section" id="endpoints">
+    <h2 class="section-title">Intelligence Endpoints</h2>
+    <p class="section-subtitle">MCP-native API endpoints delivering real-time LLM pricing, benchmarks, and alerts.</p>
+    <div class="endpoints-list">
+      <div class="endpoint animate">
+        <span class="method get">GET</span>
+        <code>/v1/llm-costs</code>
+        <p>Real-time LLM pricing across all providers</p>
+      </div>
+      <div class="endpoint animate animate-delay-1">
+        <span class="method get">GET</span>
+        <code>/v1/model-benchmarks</code>
+        <p>Performance benchmarks comparing models</p>
+      </div>
+      <div class="endpoint animate animate-delay-2">
+        <span class="method get">GET</span>
+        <code>/v1/deprecations</code>
+        <p>Active and upcoming deprecations</p>
+      </div>
+      <div class="endpoint animate animate-delay-3">
+        <span class="method get">GET</span>
+        <code>/v1/providers</code>
+        <p>List all tracked LLM providers</p>
+      </div>
+      <div class="endpoint animate animate-delay-4">
+        <span class="method get">GET</span>
+        <code>/v1/changes</code>
+        <p>Recent pricing changes and updates</p>
+      </div>
+    </div>
+    <p style="text-align:center; margin-top:40px; color:#777; font-size:13px;">
+      <span style="color:var(--lime);">MCP-native</span> • All endpoints support x-api-key auth
+    </p>
+  </section>
+
+  <!-- Pricing -->
+  <section class="section section-dark" id="pricing">
+    <h2 class="section-title">Simple, Transparent Pricing</h2>
+    <p class="section-subtitle">Choose the plan that fits your AI operations needs. All plans include MCP-native access.</p>
+    <div class="pricing-grid">
+      <div class="plan highlighted animate">
+        <div class="plan-badge">Most Popular</div>
+        <div class="plan-name">Starter</div>
+        <div class="plan-price">$99<span class="per">/month</span></div>
+        <p class="plan-desc">Full access to intelligence endpoints with hourly updates.</p>
+        <ul class="plan-features">
+          <li>Full access to intelligence endpoints</li>
+          <li>Hourly price updates</li>
+          <li>MCP-native integration</li>
+          <li>API key included</li>
+          <li>5 intelligence endpoints</li>
+          <li>8 LLM providers tracked</li>
+        </ul>
+        <a href="#" onclick="startCheckout('starter'); return false;" class="btn btn-primary">Start for $99/mo</a>
+      </div>
+      <div class="plan animate animate-delay-1">
+        <div class="plan-name">Pro</div>
+        <div class="plan-price">$299<span class="per">/month</span></div>
+        <p class="plan-desc">Advanced intelligence for production AI operations.</p>
+        <ul class="plan-features">
+          <li>Everything in Starter</li>
+          <li>Higher rate limits</li>
+          <li>Priority support</li>
+          <li>Historical data access</li>
+          <li>Custom alert webhooks</li>
+          <li>Advanced benchmarks</li>
+        </ul>
+        <a href="#" onclick="startCheckout('pro'); return false;" class="btn btn-outline" style="color:#ddd;">Start for $299/mo</a>
+      </div>
+      <div class="plan animate animate-delay-2">
+        <div class="plan-name">Scale</div>
+        <div class="plan-price">$499<span class="per">/month</span></div>
+        <p class="plan-desc">Enterprise-grade intelligence with maximum throughput.</p>
+        <ul class="plan-features">
+          <li>Everything in Pro</li>
+          <li>Highest rate limits</li>
+          <li>Dedicated support</li>
+          <li>SLA guarantees</li>
+          <li>Custom integrations</li>
+          <li>Team management</li>
+        </ul>
+        <a href="#" onclick="startCheckout('scale'); return false;" class="btn btn-outline" style="color:#ddd;">Start for $499/mo</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-brand">
+          <span class="dot"></span>
+          <span>APIPoints</span>
+        </div>
+        <p>Real-time operational intelligence for AI systems. Stop flying blind on your AI costs.</p>
+      </div>
+      <div>
+        <h4>Endpoints</h4>
+        <ul>
+          <li><a href="#endpoints">/v1/llm-costs</a></li>
+          <li><a href="#endpoints">/v1/model-benchmarks</a></li>
+          <li><a href="#endpoints">/v1/deprecations</a></li>
+          <li><a href="#endpoints">/v1/providers</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Product</h4>
+        <ul>
+          <li><a href="#features">Live Prices</a></li>
+          <li><a href="#pricing">Pricing</a></li>
+          <li><a href="#get-api-key">Get API Key</a></li>
+          <li><a href="#">Documentation</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Company</h4>
+        <ul>
+          <li><a href="#">About</a></li>
+          <li><a href="#">Blog</a></li>
+          <li><a href="#">Privacy Policy</a></li>
+          <li><a href="#">Terms of Service</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 APIPoints. Built on Cloudflare.</p>
+      <div class="footer-badge">
+        <span class="dot">●</span> Hourly updates • 8+ providers • MCP-native
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        const href = this.getAttribute('href');
+        if (href === '#') return;
+        e.preventDefault();
+        const target = document.querySelector(href);
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+
+    // Intersection Observer for scroll animations
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: '0px 0px -50px 0px'
+    };
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.style.animationPlayState = 'running';
+        }
+      });
+    }, observerOptions);
+    document.querySelectorAll('.animate').forEach(el => {
+      el.style.animationPlayState = 'paused';
+      observer.observe(el);
+    });
+
+    function startCheckout(plan) {
+      fetch('https://APIPoints-api.APIPoints.workers.dev/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan: plan })
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.checkout_url) { window.location.href = data.checkout_url; }
+        else { alert('Error: ' + (data.error || 'Failed to create checkout')); }
+      })
+      .catch(err => { alert('Error: ' + err.message); });
+    }
+  </script>
+</body>
+</html>

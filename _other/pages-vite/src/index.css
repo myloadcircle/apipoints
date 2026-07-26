@@ -1,0 +1,45 @@
+body {
+  margin: 0;
+  padding: 0;
+  background: #0D0D0D;
+  color: #fff;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-dark: #0D0D0D;
+    --color-darker: #080808;
+    --color-accent: #4A4AFF;
+    --color-accent-hover: #5A5AFF;
+  }
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, #4A4AFF 0%, #8B5CF6 50%, #4A4AFF 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.glass {
+  background: rgba(26, 26, 26, 0.8);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+@media (min-width: 1024px) {
+  .bento-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

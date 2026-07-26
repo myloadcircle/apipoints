@@ -1,0 +1,18 @@
+name = "apipoints-worker"
+main = "src/index.ts"
+compatibility_date = "2026-07-24"
+compatibility_flags = ["nodejs_compat"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "APIPoints-db"
+database_id = "2b416129-eddb-44f8-bce2-b16687fd3c37"
+
+[vars]
+STRIPE_PRICE_STARTER = "price_1Tx1wh3C6smqFKLawGRLjLBP"
+STRIPE_PRICE_GROWTH = "price_1Tx1x03C6smqFKLayKowvU4G"
+STRIPE_PRICE_ENTERPRISE = "price_1Tx1x13C6smqFKLaO5Wlr04A"
+API_POINTS_URL = "https://apipoints.pages.dev"
+
+[env.production]
+vars = { API_POINTS_URL = "https://apipoints.pages.dev" }
