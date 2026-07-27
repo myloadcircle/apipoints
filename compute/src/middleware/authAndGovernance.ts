@@ -74,6 +74,18 @@ interface RateLimitEntry {
 
 const rateLimitStore = new Map<string, RateLimitEntry>();
 
+// Evict expired entries every 5 minutes to prevent memory leak
+let lastRateLimitCleanup = Date.now();
+function cleanupRateLimitStore() {
+  const now = Date.now();
+  if (now - lastRateLimitCleanup < 300000) return;
+  lastRateLimitCleanup = now;
+  const windowMs = 60_000;
+  for (const [k, v] of rateLimitStore) {
+    if (now - v.windowStart > windowMs * 2) rateLimitStore.delete(k);
+  }
+}
+
 export function createAuthMiddleware(db: Database.Database) {
   return async (req: Request, res: Response, next: NextFunction) => {
     const apiKey = req.headers['x-apipoints-key'] as string;
@@ -123,6 +135,7 @@ export function createAuthMiddleware(db: Database.Database) {
 
 export function createRateLimitMiddleware() {
   return (req: Request, res: Response, next: NextFunction) => {
+    cleanupRateLimitStore();
     const tenantId = (req as any).tenantId;
     const tierConfig = (req as any).tierConfig as TierConfig;
     const maxReqs = tierConfig.rateLimitReqMin;

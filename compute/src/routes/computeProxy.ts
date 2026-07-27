@@ -40,22 +40,26 @@ export function createComputeProxyRoutes(db: Database.Database): Router {
         return res.status(response.status).json({ error: daytonaData.message || 'Daytona sandbox creation failed' });
       }
 
-      db.prepare(`
-        INSERT INTO compute_sandboxes (sandbox_id, tenant_id, daytona_sandbox_id, status, resource_type, vcpu_count, memory_mb, gpu_type)
-        VALUES (?, ?, ?, 'running', ?, ?, ?, ?)
-      `).run(sandboxId, tenantId, daytonaData.id || daytonaData.sandboxId, gpu_type ? 'gpu' : 'vcpu', vcpu_count || 1, memory_mb || 512, gpu_type || '');
+      const sandboxStatus = daytonaData.status || 'running';
 
       db.prepare(`
-        UPDATE tenant_wallets SET active_sandboxes = active_sandboxes + 1, updated_at = datetime('now')
-        WHERE tenant_id = ?
-      `).run(tenantId);
+        INSERT INTO compute_sandboxes (sandbox_id, tenant_id, daytona_sandbox_id, status, resource_type, vcpu_count, memory_mb, gpu_type)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(sandboxId, tenantId, daytonaData.id || daytonaData.sandboxId, sandboxStatus, gpu_type ? 'gpu' : 'vcpu', vcpu_count || 1, memory_mb || 512, gpu_type || '');
+
+      if (sandboxStatus === 'running' || sandboxStatus === 'provisioning') {
+        db.prepare(`
+          UPDATE tenant_wallets SET active_sandboxes = active_sandboxes + 1, updated_at = datetime('now')
+          WHERE tenant_id = ?
+        `).run(tenantId);
+      }
 
       await writeAuditEntry(db, tenantId, 'sandbox.create', sandboxId, req.body, daytonaData);
 
       res.status(201).json({
         sandbox_id: sandboxId,
         daytona_id: daytonaData.id || daytonaData.sandboxId,
-        status: 'running',
+        status: sandboxStatus,
         vcpu_count: vcpu_count || 1,
         memory_mb: memory_mb || 512,
         gpu_type: gpu_type || null,
@@ -63,7 +67,8 @@ export function createComputeProxyRoutes(db: Database.Database): Router {
         vcpu_rate: tierConfig.vcpuRatePerHour,
       });
     } catch (err: any) {
-      res.status(500).json({ error: 'Failed to create sandbox', detail: err.message });
+      console.error('Sandbox create error:', err?.message);
+      res.status(500).json({ error: 'Failed to create sandbox' });
     }
   });
 
@@ -121,7 +126,8 @@ export function createComputeProxyRoutes(db: Database.Database): Router {
         cost: calculateSandboxCost(vcpuHours, memoryGibHours, sandbox.gpu_type ? elapsedSeconds / 3600 : 0, sandbox.gpu_type || 'rtx4090'),
       });
     } catch (err: any) {
-      res.status(500).json({ error: 'Code execution failed', detail: err.message });
+      console.error('Code execution error:', err?.message);
+      res.status(500).json({ error: 'Code execution failed' });
     }
   });
 
@@ -165,7 +171,8 @@ export function createComputeProxyRoutes(db: Database.Database): Router {
         cost: calculateSandboxCost(0, 0, 0, 'rtx4090', sizeGb),
       });
     } catch (err: any) {
-      res.status(500).json({ error: 'Snapshot creation failed', detail: err.message });
+      console.error('Snapshot create error:', err?.message);
+      res.status(500).json({ error: 'Snapshot creation failed' });
     }
   });
 
@@ -204,12 +211,13 @@ export function createComputeProxyRoutes(db: Database.Database): Router {
         desktop_id: desktopId,
         daytona_id: daytonaData.id || daytonaData.desktopId,
         status: 'running',
-        vnc_url: daytonaPayload?.vncUrl || daytonaData.vncUrl || '',
+        vnc_url: daytonaData.vncUrl || '',
         webrtc_url: daytonaData.webrtcUrl || '',
         gpu_type: gpu_type || null,
       });
     } catch (err: any) {
-      res.status(500).json({ error: 'Desktop provisioning failed', detail: err.message });
+      console.error('Desktop provisioning error:', err?.message);
+      res.status(500).json({ error: 'Desktop provisioning failed' });
     }
   });
 
@@ -255,7 +263,8 @@ export function createComputeProxyRoutes(db: Database.Database): Router {
         res.write(`data: ${chunk}\n\n`);
       }
     } catch (err: any) {
-      res.write(`data: ${JSON.stringify({ error: err.message })}\n\n`);
+      console.error('Log stream error:', err?.message);
+      res.write(`data: ${JSON.stringify({ error: 'Log stream connection failed' })}\n\n`);
     }
 
     res.end();
@@ -294,14 +303,16 @@ export function createComputeProxyRoutes(db: Database.Database): Router {
       `).run(sandbox_id);
 
       db.prepare(`
-        UPDATE tenant_wallets SET active_sandboxes = MAX(0, active_sandboxes - 1), updated_at = datetime('now') WHERE tenant_id = ?
-      `).run(tenantId);
+        UPDATE tenant_wallets SET active_sandboxes = (SELECT COUNT(*) FROM compute_sandboxes WHERE tenant_id = ? AND status IN ('running', 'provisioning')), updated_at = datetime('now')
+        WHERE tenant_id = ?
+      `).run(tenantId, tenantId);
 
       await writeAuditEntry(db, tenantId, 'sandbox.destroy', sandbox_id, {}, {});
 
       res.json({ sandbox_id, status: 'destroyed' });
     } catch (err: any) {
-      res.status(500).json({ error: 'Failed to destroy sandbox', detail: err.message });
+      console.error('Sandbox destroy error:', err?.message);
+      res.status(500).json({ error: 'Failed to destroy sandbox' });
     }
   });
 

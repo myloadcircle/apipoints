@@ -12,7 +12,7 @@ export const config = {
 
   apiPoints: {
     workerUrl: process.env.APIPOINTS_WORKER_URL || 'https://apipoints-worker.francis-e3b.workers.dev',
-    jwtSecret: process.env.JWT_SECRET || 'apipoints-jwt-secret-2026-prod',
+    jwtSecret: process.env.JWT_SECRET || '',
   },
 
   rateLimits: {

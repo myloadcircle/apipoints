@@ -34,6 +34,44 @@ function cors() {
   });
 }
 
+// Simple in-memory rate limiter for public/auth endpoints (per-isolate)
+const publicRateLimit = new Map<string, { count: number; resetAt: number }>();
+const authRateLimit = new Map<string, { count: number; resetAt: number }>();
+
+function checkPublicRateLimit(key: string, limit: number, windowMs: number): boolean {
+  const now = Date.now();
+  const entry = publicRateLimit.get(key);
+  if (!entry || now > entry.resetAt) {
+    publicRateLimit.set(key, { count: 1, resetAt: now + windowMs });
+    return true;
+  }
+  if (entry.count >= limit) return false;
+  entry.count++;
+  return true;
+}
+
+function checkAuthRateLimit(key: string, limit: number, windowMs: number): boolean {
+  const now = Date.now();
+  const entry = authRateLimit.get(key);
+  if (!entry || now > entry.resetAt) {
+    authRateLimit.set(key, { count: 1, resetAt: now + windowMs });
+    return true;
+  }
+  if (entry.count >= limit) return false;
+  entry.count++;
+  return true;
+}
+
+// Periodic cleanup for rate limit maps (every 5 minutes)
+let lastCleanup = Date.now();
+function cleanupRateLimits() {
+  const now = Date.now();
+  if (now - lastCleanup < 300000) return;
+  lastCleanup = now;
+  for (const [k, v] of publicRateLimit) { if (now > v.resetAt) publicRateLimit.delete(k); }
+  for (const [k, v] of authRateLimit) { if (now > v.resetAt) authRateLimit.delete(k); }
+}
+
 function generateId() {
   return crypto.randomUUID();
 }
@@ -179,20 +217,21 @@ async function checkRateLimit(db: D1Database, userId: string, plan: string): Pro
   const limit = RATE_LIMITS[plan] || RATE_LIMITS.free;
   const windowStart = Math.floor(Date.now() / 60000) * 60;
   const reset = windowStart + 60;
+  // Insert a placeholder usage row first, then count. If over limit, delete it.
+  const tempId = generateId();
+  await db.prepare('INSERT INTO api_usage (id, user_id, endpoint, credits_used) VALUES (?, ?, \'_ratelimit_check\', 0)').bind(tempId, userId).run();
   const result = await db.prepare('SELECT COUNT(*) as cnt FROM api_usage WHERE user_id = ? AND created_at >= datetime(?, \'unixepoch\')').bind(userId, windowStart).first() as any;
   const count = result?.cnt || 0;
-  return {
-    allowed: count < limit,
-    remaining: Math.max(0, limit - count - 1),
-    limit,
-    reset,
-  };
+  if (count > limit) {
+    await db.prepare('DELETE FROM api_usage WHERE id = ?').bind(tempId).run();
+    return { allowed: false, remaining: 0, limit, reset };
+  }
+  return { allowed: true, remaining: Math.max(0, limit - count - 1), limit, reset };
 }
 
 async function deductCredits(db: D1Database, userId: string, amount: number): Promise<boolean> {
-  const credits = await db.prepare('SELECT balance FROM credits WHERE user_id = ?').bind(userId).first() as any;
-  if (!credits || credits.balance < amount) return false;
-  await db.prepare('UPDATE credits SET balance = balance - ?, updated_at = datetime(\'now\') WHERE user_id = ?').bind(amount, userId).run();
+  const result = await db.prepare('UPDATE credits SET balance = balance - ?, updated_at = datetime(\'now\') WHERE user_id = ? AND balance >= ?').bind(amount, userId, amount).run();
+  if (result.meta.changes === 0) return false;
   await db.prepare('INSERT INTO credit_ledger (user_id, amount, type, description) VALUES (?, ?, ?, ?)').bind(userId, -amount, 'api_call', 'Intelligence API call').run();
   return true;
 }
@@ -256,7 +295,12 @@ export default {
 
       if (method === 'OPTIONS') return cors();
 
-      const jwtSecret = env.JWT_SECRET || 'apipoints-default-secret-change-me';
+      cleanupRateLimits();
+
+      if (!env.JWT_SECRET) {
+        return json({ error: 'Server configuration error' }, 500);
+      }
+      const jwtSecret = env.JWT_SECRET;
 
       // Health
       if (path === '/api/health') {
@@ -265,6 +309,10 @@ export default {
 
       // Public LLM costs (no auth required, rate-limited, for landing page widget)
       if (path === '/api/public/llm-costs') {
+        const clientIp = request.headers.get('CF-Connecting-IP') || 'unknown';
+        if (!checkPublicRateLimit(`pub:${clientIp}`, 30, 60000)) {
+          return json({ error: 'Rate limit exceeded. Try again shortly.' }, 429);
+        }
         // Return key top models for the landing page widget
         const topModels = [
           'gpt-4o', 'gpt-4o-mini', 'gpt-4.1', 'claude-opus-4', 'claude-sonnet-4',
@@ -281,6 +329,10 @@ export default {
 
       // Auth routes
       if (path === '/api/auth/signup' && method === 'POST') {
+        const clientIp = request.headers.get('CF-Connecting-IP') || 'unknown';
+        if (!checkAuthRateLimit(`auth:${clientIp}`, 5, 300000)) {
+          return json({ error: 'Too many attempts. Please try again later.' }, 429);
+        }
         const body = await request.json() as any;
         const { email, password, name } = body;
         if (!email || !password) return json({ error: 'Email and password required' }, 400);
@@ -294,16 +346,23 @@ export default {
         const hash = await hashPassword(password, salt);
         const cleanEmail = email.toLowerCase().trim();
 
-        await env.DB.prepare('INSERT INTO users (id, email, password_hash, password_salt, name) VALUES (?, ?, ?, ?, ?)').bind(id, cleanEmail, hash, salt, name || '').run();
-        await env.DB.prepare('INSERT INTO credits (user_id, balance) VALUES (?, 5000)').bind(id).run();
-        await env.DB.prepare('INSERT INTO subscriptions (id, user_id, plan, status) VALUES (?, ?, ?, ?)').bind(generateId(), id, 'free', 'active').run();
-        await env.DB.prepare('INSERT INTO credit_ledger (user_id, amount, type, description) VALUES (?, 5000, ?, ?)').bind(id, 'signup_bonus', '5,000 free credits on signup').run();
+        const subId = generateId();
+        await env.DB.batch([
+          env.DB.prepare('INSERT INTO users (id, email, password_hash, password_salt, name) VALUES (?, ?, ?, ?, ?)').bind(id, cleanEmail, hash, salt, name || ''),
+          env.DB.prepare('INSERT INTO credits (user_id, balance) VALUES (?, 5000)').bind(id),
+          env.DB.prepare('INSERT INTO subscriptions (id, user_id, plan, status) VALUES (?, ?, ?, ?)').bind(subId, id, 'free', 'active'),
+          env.DB.prepare('INSERT INTO credit_ledger (user_id, amount, type, description) VALUES (?, 5000, ?, ?)').bind(id, 'signup_bonus', '5,000 free credits on signup'),
+        ]);
 
         const token = await generateToken(id, jwtSecret);
         return json({ token, user: { id, email: cleanEmail, name: name || '' } });
       }
 
       if (path === '/api/auth/login' && method === 'POST') {
+        const clientIp = request.headers.get('CF-Connecting-IP') || 'unknown';
+        if (!checkAuthRateLimit(`auth:${clientIp}`, 10, 300000)) {
+          return json({ error: 'Too many login attempts. Please try again later.' }, 429);
+        }
         const body = await request.json() as any;
         const { email, password } = body;
         if (!email || !password) return json({ error: 'Email and password required' }, 400);
@@ -596,9 +655,14 @@ export default {
           }, {});
           const t = elements.t;
           const v1 = elements.v1;
+          // Reject events older than 5 minutes (replay protection)
+          const timestamp = parseInt(t, 10);
+          if (!timestamp || Math.abs(Date.now() / 1000 - timestamp) > 300) {
+            return json({ error: 'Webhook timestamp too old' }, 400);
+          }
           const signedPayload = `${t}.${rawBody}`;
-          const computedSig = await hmacSign(signedPayload, env.STRIPE_WEBHOOK_SECRET);
-          if (computedSig !== v1) throw new Error('Signature mismatch');
+          const valid = await hmacVerify(signedPayload, v1, env.STRIPE_WEBHOOK_SECRET);
+          if (!valid) throw new Error('Signature mismatch');
           event = JSON.parse(rawBody);
         } catch {
           return json({ error: 'Webhook verification failed' }, 400);
@@ -610,7 +674,7 @@ export default {
           const plan = session.metadata?.plan;
           if (userId && plan) {
             const creditsAmount = plan === 'starter' ? 5000000 : plan === 'growth' ? 20000000 : 50000000;
-            await env.DB.prepare('UPDATE credits SET balance = ?, updated_at = datetime(\'now\') WHERE user_id = ?').bind(creditsAmount, userId).run();
+            await env.DB.prepare('UPDATE credits SET balance = balance + ?, updated_at = datetime(\'now\') WHERE user_id = ?').bind(creditsAmount, userId).run();
             await env.DB.prepare('UPDATE subscriptions SET plan = ?, status = \'active\', stripe_subscription_id = ?, stripe_customer_id = ?, updated_at = datetime(\'now\') WHERE user_id = ?').bind(plan, session.subscription || '', session.customer || '', userId).run();
             await env.DB.prepare('INSERT INTO credit_ledger (user_id, amount, type, description) VALUES (?, ?, ?, ?)').bind(userId, creditsAmount, 'subscription_activated', `${plan} plan activated`).run();
           }
@@ -636,7 +700,8 @@ export default {
 
       return json({ error: 'Not found' }, 404);
     } catch (err: any) {
-      return json({ error: err.message || String(err) }, 500);
+      console.error('Worker error:', err?.message || err);
+      return json({ error: 'Internal server error' }, 500);
     }
   },
 };

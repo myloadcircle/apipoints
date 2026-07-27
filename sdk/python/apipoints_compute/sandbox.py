@@ -1,9 +1,9 @@
-from .client import APIClient
+from .client import APIPointsCompute
 from typing import Optional, Dict, Any, List, Generator
 
 
 class SandboxManager:
-    def __init__(self, client: APIClient):
+    def __init__(self, client: APIPointsCompute):
         self.client = client
 
     def create(
@@ -42,7 +42,7 @@ class SandboxManager:
 
 
 class Sandbox:
-    def __init__(self, client: APIClient, data: Dict[str, Any]):
+    def __init__(self, client: APIPointsCompute, data: Dict[str, Any]):
         self.client = client
         self.sandbox_id = data["sandbox_id"]
         self.daytona_id = data.get("daytona_id") or data.get("daytona_sandbox_id")
@@ -50,7 +50,7 @@ class Sandbox:
         self.vcpu_count = data.get("vcpu_count", 1)
         self.memory_mb = data.get("memory_mb", 512)
         self.gpu_type = data.get("gpu_type")
-        self.vcpu_rate = data.get("vcpu_rate", 0.15)
+        self.vcpu_rate = data.get("vcpu_rate", 0.0655)
         self._data = data
 
     def run_code(self, code: str, language: str = "python", timeout: int = 30) -> Dict[str, Any]:

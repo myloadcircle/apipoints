@@ -2,7 +2,7 @@ import httpx
 from typing import Optional, Dict, Any, Generator
 
 
-class APIClient:
+class APIPointsCompute:
     def __init__(self, api_key: str, base_url: str = "https://apipoints-worker.francis-e3b.workers.dev"):
         self.api_key = api_key
         self.base_url = base_url.rstrip("/")
