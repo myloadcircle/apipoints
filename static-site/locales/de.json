@@ -111,10 +111,10 @@
   "pricingSection": {
     "title": "Einfache, transparente Preise",
     "subtitle": "Kostenlos starten. Upgrade wenn Sie mehr brauchen. Alle Pläne beinhalten MCP-nativen Zugang.",
-    "free": { "name": "Kostenlos", "desc": "Testen Sie die API und grundlegende Intelligenz-Endpunkte.", "cta": "Kostenlos starten", "f1": "5.000 Credits/Monat", "f2": "10 Anfragen/Min. Ratenlimit", "f3": "3 Intelligenz-Endpunkte", "f4": "Community-Support" },
-    "starter": { "name": "Starter", "badge": "Beliebteste Wahl", "desc": "Voller Zugriff auf alle Intelligenz-Endpunkte mit großzügigen Limits.", "cta": "Für $49/Mo starten", "f1": "5M Credits/Monat", "f2": "60 Anfragen/Min. Ratenlimit", "f3": "Alle 7 Intelligenz-Endpunkte", "f4": "Stündliche Preisupdates", "f5": "MCP-native Integration", "f6": "1 Sitzplatz inklusive" },
-    "growth": { "name": "Growth", "desc": "Erweiterte Intelligenz für produktive KI-Teams.", "cta": "Für $149/Mo starten", "f1": "20M Credits/Monat", "f2": "300 Anfragen/Min. Ratenlimit", "f3": "5 Team-Sitzplätze inklusive", "f4": "Priority-Support", "f5": "Zugriff auf historische Daten", "f6": "Benutzerdefinierte Alert-Webhooks" },
-    "enterprise": { "name": "Enterprise", "desc": "Enterprise-Intelligenz mit maximaler Durchsatzrate.", "cta": "Für $499/Mo starten", "f1": "50M Credits/Monat", "f2": "1.000 Anfragen/Min. Ratenlimit", "f3": "20 Team-Sitzplätze inklusive", "f4": "Dedizierter Support", "f5": "SLA-Garantien", "f6": "Benutzerdefinierte Integrationen" }
+    "free": { "name": "Kostenlos", "desc": "Testen Sie die API und grundlegende Intelligenz-Endpunkte.", "cta": "API-Schlüssel kostenlos", "f1": "5.000 API-Credits/Monat", "f2": "10 Anfragen/Min. Ratenlimit", "f3": "Alle 5 Daten-Endpunkte", "f4": "Community-Support" },
+    "starter": { "name": "Starter", "badge": "Beliebteste Wahl", "desc": "Voller Intelligenzzugang mit $49/Monat Compute-Credits.", "cta": "Für $49/Mo starten", "f1": "Alle 5 Intelligenz-Endpunkte", "f2": "60 Anfragen/Min. Ratenlimit", "f3": "$49 Compute-Credits/Mo", "f4": "3 gleichzeitige Sandboxes", "f5": "vCPU $0,0655/Std", "f6": "1 Sitzplatz inklusive" },
+    "growth": { "name": "Growth", "desc": "Erweiterte Intelligenz + $149 Compute-Credits. GPU-Zugang.", "cta": "Für $149/Mo starten", "f1": "Alle 5 Intelligenz-Endpunkte", "f2": "300 Anfragen/Min. Ratenlimit", "f3": "$149 Compute-Credits/Mo", "f4": "15 gleichzeitige Sandboxes", "f5": "GPU-Zugang (RTX 4090)", "f6": "5 Team-Sitzplätze inklusive" },
+    "enterprise": { "name": "Enterprise", "desc": "Maximales Compute + Intelligenz. H100-Zugang, individuelle SLAs.", "cta": "Für $499/Mo starten", "f1": "Alle 5 Intelligenz-Endpunkte", "f2": "1.000 Anfragen/Min. Ratenlimit", "f3": "$499 Compute-Credits/Mo", "f4": "50 gleichzeitige Sandboxes", "f5": "H100-Zugang ($4,55/Std)", "f6": "20 Team-Sitzplätze + dedizierter Support" }
   },
   "docs": {
     "title": "Dokumentation",

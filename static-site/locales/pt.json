@@ -111,10 +111,10 @@
   "pricingSection": {
     "title": "Preços simples e transparentes",
     "subtitle": "Comece grátis. Faça upgrade quando precisar de mais. Todos os planos incluem acesso nativo MCP.",
-    "free": { "name": "Grátis", "desc": "Explore a API e teste endpoints de inteligência básicos.", "cta": "Começar grátis", "f1": "5.000 créditos/mês", "f2": "Limite de 10 requisições/min", "f3": "3 endpoints de inteligência", "f4": "Suporte da comunidade" },
-    "starter": { "name": "Starter", "badge": "Mais popular", "desc": "Acesso completo a todos os endpoints de inteligência com limites generosos.", "cta": "Começar por $49/mês", "f1": "5M de créditos/mês", "f2": "Limite de 60 requisições/min", "f3": "Todos os 7 endpoints de inteligência", "f4": "Atualizações horárias de preços", "f5": "Integração nativa MCP", "f6": "1 assento incluído" },
-    "growth": { "name": "Growth", "desc": "Inteligência avançada para equipes de IA em produção.", "cta": "Começar por $149/mês", "f1": "20M de créditos/mês", "f2": "Limite de 300 requisições/min", "f3": "5 assentos de equipe incluídos", "f4": "Suporte prioritário", "f5": "Acesso a dados históricos", "f6": "Webhooks de alertas personalizados" },
-    "enterprise": { "name": "Enterprise", "desc": "Inteligência de nível empresarial com throughput máximo.", "cta": "Começar por $499/mês", "f1": "50M de créditos/mês", "f2": "Limite de 1.000 requisições/min", "f3": "20 assentos de equipe incluídos", "f4": "Suporte dedicado", "f5": "Garantias de SLA", "f6": "Integrações personalizadas" }
+    "free": { "name": "Grátis", "desc": "Explore a API e teste endpoints de inteligência básicos.", "cta": "Chave API grátis", "f1": "5.000 créditos API/mês", "f2": "Limite de 10 requisições/min", "f3": "Todos os 5 endpoints de dados", "f4": "Suporte da comunidade" },
+    "starter": { "name": "Starter", "badge": "Mais popular", "desc": "Acesso completo à inteligência + $49/mês de créditos compute.", "cta": "Começar por $49/mês", "f1": "Todos os 5 endpoints de inteligência", "f2": "Limite de 60 requisições/min", "f3": "$49 créditos compute/mês", "f4": "3 sandboxes concorrentes", "f5": "vCPU $0.0655/hr", "f6": "1 assento incluído" },
+    "growth": { "name": "Growth", "desc": "Inteligência avançada + $149 créditos compute. Acesso GPU.", "cta": "Começar por $149/mês", "f1": "Todos os 5 endpoints de inteligência", "f2": "Limite de 300 requisições/min", "f3": "$149 créditos compute/mês", "f4": "15 sandboxes concorrentes", "f5": "Acesso GPU (RTX 4090)", "f6": "5 assentos de equipe incluídos" },
+    "enterprise": { "name": "Enterprise", "desc": "Compute máximo + inteligência. Acesso H100, SLAs personalizados.", "cta": "Começar por $499/mês", "f1": "Todos os 5 endpoints de inteligência", "f2": "Limite de 1.000 requisições/min", "f3": "$499 créditos compute/mês", "f4": "50 sandboxes concorrentes", "f5": "Acesso H100 ($4.55/hr)", "f6": "20 assentos de equipe + suporte dedicado" }
   },
   "docs": {
     "title": "Documentação",

@@ -111,10 +111,10 @@
   "pricingSection": {
     "title": "Simple, Transparent Pricing",
     "subtitle": "Start free. Upgrade when you need more. All plans include MCP-native access.",
-    "free": { "name": "Free", "desc": "Explore the API and test basic intelligence endpoints.", "cta": "Get Started Free", "f1": "5,000 credits/month", "f2": "10 requests/min rate limit", "f3": "3 intelligence endpoints", "f4": "Community support" },
-    "starter": { "name": "Starter", "badge": "Most Popular", "desc": "Full access to all intelligence endpoints with generous limits.", "cta": "Start for $49/mo", "f1": "5M credits/month", "f2": "60 requests/min rate limit", "f3": "All 7 intelligence endpoints", "f4": "Hourly price updates", "f5": "MCP-native integration", "f6": "1 seat included" },
-    "growth": { "name": "Growth", "desc": "Advanced intelligence for production AI teams.", "cta": "Start for $149/mo", "f1": "20M credits/month", "f2": "300 requests/min rate limit", "f3": "5 team seats included", "f4": "Priority support", "f5": "Historical data access", "f6": "Custom alert webhooks" },
-    "enterprise": { "name": "Enterprise", "desc": "Enterprise-grade intelligence with maximum throughput.", "cta": "Start for $499/mo", "f1": "50M credits/month", "f2": "1,000 requests/min rate limit", "f3": "20 team seats included", "f4": "Dedicated support", "f5": "SLA guarantees", "f6": "Custom integrations" }
+    "free": { "name": "Free", "desc": "Explore the API and test basic intelligence endpoints.", "cta": "Get API Key Free", "f1": "5,000 API credits/month", "f2": "10 requests/min rate limit", "f3": "All 5 data endpoints", "f4": "Community support" },
+    "starter": { "name": "Starter", "badge": "Most Popular", "desc": "Full intelligence access with $49/mo compute credits.", "cta": "Start for $49/mo", "f1": "All 5 intelligence endpoints", "f2": "60 requests/min rate limit", "f3": "$49 compute credits/mo", "f4": "3 concurrent sandboxes", "f5": "vCPU $0.0655/hr", "f6": "1 seat included" },
+    "growth": { "name": "Growth", "desc": "Advanced intelligence + $149 compute credits. GPU access.", "cta": "Start for $149/mo", "f1": "All 5 intelligence endpoints", "f2": "300 requests/min rate limit", "f3": "$149 compute credits/mo", "f4": "15 concurrent sandboxes", "f5": "GPU access (RTX 4090)", "f6": "5 team seats included" },
+    "enterprise": { "name": "Enterprise", "desc": "Maximum compute + intelligence. H100 access, custom SLAs.", "cta": "Start for $499/mo", "f1": "All 5 intelligence endpoints", "f2": "1,000 requests/min rate limit", "f3": "$499 compute credits/mo", "f4": "50 concurrent sandboxes", "f5": "H100 access ($4.55/hr)", "f6": "20 team seats + dedicated support" }
   },
   "docs": {
     "title": "Documentation",

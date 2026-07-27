@@ -1,12 +1,12 @@
 APIPoints Build Info
 ====================
-Last Updated: 2026-07-25
+Last Updated: 2026-07-27
 
 Pricing Tiers:
-- Free: $0/month (5K credits, 10 req/min)
-- Starter: $49/month (5M credits, 60 req/min)
-- Growth: $149/month (20M credits, 300 req/min)
-- Enterprise: $499/month (50M credits, 1000 req/min)
+- Free: $0/month (5K API credits, 10 req/min, no compute)
+- Starter: $49/month ($49 compute credits, 60 req/min, 3 sandboxes)
+- Growth: $149/month ($149 compute credits, 300 req/min, 15 sandboxes, GPU)
+- Enterprise: $499/month ($499 compute credits, 1000 req/min, 50 sandboxes, H100)
 
 Infrastructure:
 - Worker: https://apipoints-worker.francis-e3b.workers.dev

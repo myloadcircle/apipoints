@@ -104,9 +104,9 @@
     if (!token) { window.location.href = '/login.html'; }
 
     const PLANS = [
-      { id: 'starter', name: 'Starter', price: 49, seats: 1, features: ['1 team seat', '5M credits/month', 'All 7 intelligence endpoints', 'Hourly price updates', 'MCP integration'] },
-      { id: 'growth', name: 'Growth', price: 149, seats: 5, features: ['5 team seats', '20M credits/month', 'Higher rate limits', 'Priority support', 'Historical data access', 'Custom alert webhooks'] },
-      { id: 'enterprise', name: 'Enterprise', price: 499, seats: 20, features: ['20 team seats', '50M credits/month', 'Highest rate limits', 'Dedicated support', 'SLA guarantees', 'Custom integrations'] }
+      { id: 'starter', name: 'Starter', price: 49, seats: 1, features: ['1 team seat', '$49 compute credits/month', 'All 5 intelligence endpoints', '3 concurrent sandboxes', 'vCPU $0.0655/hr'] },
+      { id: 'growth', name: 'Growth', price: 149, seats: 5, features: ['5 team seats', '$149 compute credits/month', 'All 5 intelligence endpoints', '15 concurrent sandboxes', 'GPU access (RTX 4090)', 'Priority support'] },
+      { id: 'enterprise', name: 'Enterprise', price: 499, seats: 20, features: ['20 team seats', '$499 compute credits/month', 'All 5 intelligence endpoints', '50 concurrent sandboxes', 'H100 access ($4.55/hr)', 'Dedicated support', 'SLA guarantees'] }
     ];
 
     function showError(msg) { document.getElementById('error-message').textContent = msg; document.getElementById('error-message').style.display = 'block'; }
