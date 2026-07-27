@@ -6,6 +6,11 @@ CREATE TABLE IF NOT EXISTS users (
   password_hash TEXT NOT NULL,
   password_salt TEXT DEFAULT '',
   name TEXT DEFAULT '',
+  email_verified INTEGER DEFAULT 0,
+  verification_token TEXT,
+  verification_expires TEXT,
+  password_reset_token TEXT,
+  password_reset_expires TEXT,
   created_at TEXT DEFAULT (datetime('now')),
   updated_at TEXT DEFAULT (datetime('now'))
 );

@@ -1,6 +1,7 @@
 import { PROVIDERS, PRICING, BENCHMARKS, DEPRECATIONS, CHANGES, COST_RECOMMENDATIONS, RATE_LIMITS, DATA_VERSION, LAST_UPDATED, type ModelPricing, type Deprecation } from './intelligence';
+import { sendVerificationEmail, sendPasswordResetEmail, sendWelcomeEmail, sendBillingConfirmation, type EmailEnv } from './email';
 
-interface Env {
+interface Env extends EmailEnv {
   DB: D1Database;
   STRIPE_SECRET_KEY?: string;
   STRIPE_WEBHOOK_SECRET?: string;
@@ -74,6 +75,14 @@ function cleanupRateLimits() {
 
 function generateId() {
   return crypto.randomUUID();
+}
+
+function generateVerificationToken(): string {
+  return [...crypto.getRandomValues(new Uint8Array(32))].map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function getBaseUrl(env: Env): string {
+  return env.API_POINTS_URL || 'https://apipoints.pages.dev';
 }
 
 function generateApiKey() {
@@ -345,17 +354,24 @@ export default {
         const salt = generateSalt();
         const hash = await hashPassword(password, salt);
         const cleanEmail = email.toLowerCase().trim();
+        const vToken = generateVerificationToken();
+        const vExpires = new Date(Date.now() + 86400000).toISOString(); // 24h
 
         const subId = generateId();
         await env.DB.batch([
-          env.DB.prepare('INSERT INTO users (id, email, password_hash, password_salt, name) VALUES (?, ?, ?, ?, ?)').bind(id, cleanEmail, hash, salt, name || ''),
+          env.DB.prepare('INSERT INTO users (id, email, password_hash, password_salt, name, verification_token, verification_expires) VALUES (?, ?, ?, ?, ?, ?, ?)').bind(id, cleanEmail, hash, salt, name || '', vToken, vExpires),
           env.DB.prepare('INSERT INTO credits (user_id, balance) VALUES (?, 5000)').bind(id),
           env.DB.prepare('INSERT INTO subscriptions (id, user_id, plan, status) VALUES (?, ?, ?, ?)').bind(subId, id, 'free', 'active'),
           env.DB.prepare('INSERT INTO credit_ledger (user_id, amount, type, description) VALUES (?, 5000, ?, ?)').bind(id, 'signup_bonus', '5,000 free credits on signup'),
         ]);
 
-        const token = await generateToken(id, jwtSecret);
-        return json({ token, user: { id, email: cleanEmail, name: name || '' } });
+        // Send verification email (non-blocking — don't fail signup if email fails)
+        sendVerificationEmail(env, cleanEmail, vToken, getBaseUrl(env)).catch(err => {
+          console.error('Failed to send verification email:', err);
+        });
+
+        // Don't issue JWT until email is verified
+        return json({ message: 'Account created. Check your email to verify.', email: cleanEmail });
       }
 
       if (path === '/api/auth/login' && method === 'POST') {
@@ -367,7 +383,7 @@ export default {
         const { email, password } = body;
         if (!email || !password) return json({ error: 'Email and password required' }, 400);
 
-        const user = await env.DB.prepare('SELECT id, email, name, password_hash, password_salt FROM users WHERE email = ?').bind(email.toLowerCase().trim()).first() as any;
+        const user = await env.DB.prepare('SELECT id, email, name, password_hash, password_salt, email_verified FROM users WHERE email = ?').bind(email.toLowerCase().trim()).first() as any;
         if (!user) return json({ error: 'Invalid credentials' }, 401);
 
         let valid = false;
@@ -384,8 +400,104 @@ export default {
         }
         if (!valid) return json({ error: 'Invalid credentials' }, 401);
 
+        if (!user.email_verified) {
+          return json({ error: 'Email not verified. Check your inbox or resend the verification email.', unverified: true }, 403);
+        }
+
         const token = await generateToken(user.id, jwtSecret);
         return json({ token, user: { id: user.id, email: user.email, name: user.name } });
+      }
+
+      // --- Email verification ---
+      if (path === '/api/auth/verify-email' && method === 'POST') {
+        const body = await request.json() as any;
+        const { token } = body;
+        if (!token) return json({ error: 'Token required' }, 400);
+
+        const user = await env.DB.prepare('SELECT id, email, name, verification_expires FROM users WHERE verification_token = ?').bind(token).first() as any;
+        if (!user) return json({ error: 'Invalid verification link' }, 400);
+        if (user.verification_expires && new Date(user.verification_expires) < new Date()) {
+          return json({ error: 'Verification link expired. Please request a new one.' }, 400);
+        }
+
+        await env.DB.prepare('UPDATE users SET email_verified = 1, verification_token = NULL, verification_expires = NULL, updated_at = datetime(\'now\') WHERE id = ?').bind(user.id).run();
+
+        sendWelcomeEmail(env, user.email, user.name).catch(err => {
+          console.error('Failed to send welcome email:', err);
+        });
+
+        const jwtToken = await generateToken(user.id, jwtSecret);
+        return json({ message: 'Email verified', token: jwtToken, user: { id: user.id, email: user.email, name: user.name } });
+      }
+
+      if (path === '/api/auth/resend-verification' && method === 'POST') {
+        const clientIp = request.headers.get('CF-Connecting-IP') || 'unknown';
+        if (!checkAuthRateLimit(`auth:${clientIp}`, 3, 300000)) {
+          return json({ error: 'Too many attempts. Try again later.' }, 429);
+        }
+        const body = await request.json() as any;
+        const { email } = body;
+        if (!email) return json({ error: 'Email required' }, 400);
+
+        const cleanEmail = email.toLowerCase().trim();
+        const user = await env.DB.prepare('SELECT id, email_verified FROM users WHERE email = ?').bind(cleanEmail).first() as any;
+        if (!user) return json({ message: 'If an account exists with that email, a verification link has been sent.' });
+        if (user.email_verified) return json({ message: 'Email already verified. You can log in.' });
+
+        const vToken = generateVerificationToken();
+        const vExpires = new Date(Date.now() + 86400000).toISOString();
+        await env.DB.prepare('UPDATE users SET verification_token = ?, verification_expires = ?, updated_at = datetime(\'now\') WHERE id = ?').bind(vToken, vExpires, user.id).run();
+
+        sendVerificationEmail(env, cleanEmail, vToken, getBaseUrl(env)).catch(err => {
+          console.error('Failed to resend verification email:', err);
+        });
+
+        return json({ message: 'If an account exists with that email, a verification link has been sent.' });
+      }
+
+      // --- Password reset ---
+      if (path === '/api/auth/forgot-password' && method === 'POST') {
+        const clientIp = request.headers.get('CF-Connecting-IP') || 'unknown';
+        if (!checkAuthRateLimit(`auth:${clientIp}`, 5, 300000)) {
+          return json({ error: 'Too many attempts. Try again later.' }, 429);
+        }
+        const body = await request.json() as any;
+        const { email } = body;
+        if (!email) return json({ error: 'Email required' }, 400);
+
+        const cleanEmail = email.toLowerCase().trim();
+        const user = await env.DB.prepare('SELECT id, email FROM users WHERE email = ?').bind(cleanEmail).first() as any;
+        if (!user) return json({ message: 'If an account exists with that email, a reset link has been sent.' });
+
+        const resetToken = generateVerificationToken();
+        const resetExpires = new Date(Date.now() + 3600000).toISOString();
+        await env.DB.prepare('UPDATE users SET password_reset_token = ?, password_reset_expires = ?, updated_at = datetime(\'now\') WHERE id = ?').bind(resetToken, resetExpires, user.id).run();
+
+        sendPasswordResetEmail(env, cleanEmail, resetToken, getBaseUrl(env)).catch(err => {
+          console.error('Failed to send password reset email:', err);
+        });
+
+        return json({ message: 'If an account exists with that email, a reset link has been sent.' });
+      }
+
+      if (path === '/api/auth/reset-password' && method === 'POST') {
+        const body = await request.json() as any;
+        const { token, password } = body;
+        if (!token || !password) return json({ error: 'Token and password required' }, 400);
+        if (password.length < 8) return json({ error: 'Password must be at least 8 characters' }, 400);
+
+        const user = await env.DB.prepare('SELECT id, email, name, password_reset_expires FROM users WHERE password_reset_token = ?').bind(token).first() as any;
+        if (!user) return json({ error: 'Invalid reset link' }, 400);
+        if (user.password_reset_expires && new Date(user.password_reset_expires) < new Date()) {
+          return json({ error: 'Reset link expired. Please request a new one.' }, 400);
+        }
+
+        const newSalt = generateSalt();
+        const newHash = await hashPassword(password, newSalt);
+        await env.DB.prepare('UPDATE users SET password_hash = ?, password_salt = ?, password_reset_token = NULL, password_reset_expires = NULL, updated_at = datetime(\'now\') WHERE id = ?').bind(newHash, newSalt, user.id).run();
+
+        const jwtToken = await generateToken(user.id, jwtSecret);
+        return json({ message: 'Password reset successfully', token: jwtToken, user: { id: user.id, email: user.email, name: user.name } });
       }
 
       // Authenticated routes (Bearer token)
@@ -677,6 +789,14 @@ export default {
             await env.DB.prepare('UPDATE credits SET balance = balance + ?, updated_at = datetime(\'now\') WHERE user_id = ?').bind(creditsAmount, userId).run();
             await env.DB.prepare('UPDATE subscriptions SET plan = ?, status = \'active\', stripe_subscription_id = ?, stripe_customer_id = ?, updated_at = datetime(\'now\') WHERE user_id = ?').bind(plan, session.subscription || '', session.customer || '', userId).run();
             await env.DB.prepare('INSERT INTO credit_ledger (user_id, amount, type, description) VALUES (?, ?, ?, ?)').bind(userId, creditsAmount, 'subscription_activated', `${plan} plan activated`).run();
+
+            // Send billing confirmation email (non-blocking)
+            const user = await env.DB.prepare('SELECT email, name FROM users WHERE id = ?').bind(userId).first() as any;
+            if (user) {
+              sendBillingConfirmation(env, user.email, user.name, plan, getBaseUrl(env)).catch(err => {
+                console.error('Failed to send billing confirmation:', err);
+              });
+            }
           }
         }
 

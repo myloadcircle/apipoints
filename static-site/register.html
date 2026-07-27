@@ -96,11 +96,10 @@
         const data = await res.json();
         if (data.error) { errorDiv.textContent = data.error; errorDiv.style.display = 'block'; }
         else {
-          localStorage.setItem('ap_token', data.token);
-          localStorage.setItem('ap_user', JSON.stringify(data.user));
-          successDiv.textContent = 'Account created! Redirecting...';
+          localStorage.setItem('ap_pending_email', email);
+          successDiv.textContent = 'Account created! Check your email to verify.';
           successDiv.style.display = 'block';
-          setTimeout(() => { window.location.href = '/dashboard.html'; }, 1000);
+          setTimeout(() => { window.location.href = '/check-email.html'; }, 1000);
         }
       } catch (err) { errorDiv.textContent = 'Network error. Try again.'; errorDiv.style.display = 'block'; }
       finally { document.getElementById('submit-btn').disabled = false; document.getElementById('loading').style.display = 'none'; }
