@@ -395,9 +395,9 @@
     <div style="display:inline-block; background:rgba(163,230,53,0.1); border:1px solid rgba(163,230,53,0.3); padding:6px 16px; border-radius:20px; margin-bottom:20px; font-size:12px; color:var(--lime); animate: fadeIn 0.8s ease-out;" data-i18n="hero.badge">
       ✓ Start in 30 seconds — No credit card required
     </div>
-    <div class="subtitle animate" data-i18n="hero.subtitle">AI OPERATIONS INTELLIGENCE</div>
-    <h1 class="animate animate-delay-1"><span data-i18n="hero.title1">Stop flying blind</span><br/>on your <span class="highlight" data-i18n="hero.title2">AI costs</span>.</h1>
-    <p class="lead animate animate-delay-2" data-i18n="hero.lead">APIPoints gives you real-time LLM pricing, model benchmarks, and deprecation alerts for 8+ AI providers. Use our API or connect directly via MCP.</p>
+    <div class="subtitle animate" data-i18n="hero.subtitle">AI OPERATIONS INTELLIGENCE + SOVEREIGN COMPUTE</div>
+    <h1 class="animate animate-delay-1"><span data-i18n="hero.title1">Stop flying blind</span><br/>on your <span class="highlight" data-i18n="hero.title2">AI costs & compute</span>.</h1>
+    <p class="lead animate animate-delay-2" data-i18n="hero.lead">Real-time LLM pricing, benchmarks, and deprecation alerts — plus sovereign compute with zero-trust isolation, transparent metering, and SOC2-ready audit trails.</p>
     
     <!-- Visual Step Guide -->
     <div class="animate animate-delay-3" style="display:flex; gap:20px; justify-content:center; flex-wrap:wrap; margin:30px 0 20px;">
@@ -449,6 +449,27 @@
       </div>
     </div>
   </section>
+
+  <!-- Trust & Compliance Banner -->
+  <div style="background:rgba(17,17,17,0.9); border-top:1px solid var(--border); border-bottom:1px solid var(--border); padding:14px 20px; overflow:hidden;">
+    <div style="display:flex; gap:32px; justify-content:center; align-items:center; flex-wrap:wrap; max-width:1200px; margin:0 auto;">
+      <div style="display:flex; align-items:center; gap:6px; font-size:11px; color:#888; white-space:nowrap;">
+        <span style="color:var(--lime); font-size:14px;">🛡️</span> SOC2 Type II Aligned
+      </div>
+      <div style="display:flex; align-items:center; gap:6px; font-size:11px; color:#888; white-space:nowrap;">
+        <span style="color:var(--lime); font-size:14px;">🔒</span> Zero-Trust Kernel Isolation
+      </div>
+      <div style="display:flex; align-items:center; gap:6px; font-size:11px; color:#888; white-space:nowrap;">
+        <span style="color:var(--lime); font-size:14px;">🌐</span> Real-Time Egress Filtering
+      </div>
+      <div style="display:flex; align-items:center; gap:6px; font-size:11px; color:#888; white-space:nowrap;">
+        <span style="color:var(--lime); font-size:14px;">⚡</span> Built on Daytona Infrastructure
+      </div>
+      <div style="display:flex; align-items:center; gap:6px; font-size:11px; color:#888; white-space:nowrap;">
+        <span style="color:var(--lime); font-size:14px;">📋</span> Immutable Audit Trails
+      </div>
+    </div>
+  </div>
 
   <!-- Metrics -->
   <section class="metrics">
@@ -738,6 +759,200 @@ print(data["data"]) # Real-time LLM cost intelligence</code></pre>
     </p>
   </section>
 
+  <!-- APIPOINTS Compute Section -->
+  <section class="section section-dark" id="compute">
+    <h2 class="section-title">APIPOINTS Compute</h2>
+    <p class="section-subtitle">Sovereign execution layer for AI agent workloads. Enterprise identity, rate limits, usage metering, spend caps, and audit logging — powered by Daytona.</p>
+
+    <!-- Trust & Security Grid -->
+    <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:20px; max-width:1200px; margin:0 auto 60px;">
+      <div style="background:rgba(255,255,255,0.02); border:1px solid var(--border); border-radius:14px; padding:24px; text-align:center;">
+        <div style="font-size:28px; margin-bottom:12px;">🔐</div>
+        <h4 style="color:#fff; font-size:14px; font-weight:600; margin-bottom:8px;">Zero-Trust Isolation</h4>
+        <p style="color:#888; font-size:12px; line-height:1.6;">Dedicated kernel sandboxes with hardware-level isolation. No shared tenants.</p>
+      </div>
+      <div style="background:rgba(255,255,255,0.02); border:1px solid var(--border); border-radius:14px; padding:24px; text-align:center;">
+        <div style="font-size:28px; margin-bottom:12px;">🌍</div>
+        <h4 style="color:#fff; font-size:14px; font-weight:600; margin-bottom:8px;">Data Sovereignty</h4>
+        <p style="color:#888; font-size:12px; line-height:1.6;">Regional data residency with egress network filtering and IP whitelisting.</p>
+      </div>
+      <div style="background:rgba(255,255,255,0.02); border:1px solid var(--border); border-radius:14px; padding:24px; text-align:center;">
+        <div style="font-size:28px; margin-bottom:12px;">📊</div>
+        <h4 style="color:#fff; font-size:14px; font-weight:600; margin-bottom:8px;">SOC2 Aligned</h4>
+        <p style="color:#888; font-size:12px; line-height:1.6;">SHA-256 hashed audit logs with immutable ledger entries for compliance.</p>
+      </div>
+      <div style="background:rgba(255,255,255,0.02); border:1px solid var(--border); border-radius:14px; padding:24px; text-align:center;">
+        <div style="font-size:28px; margin-bottom:12px;">⚡</div>
+        <h4 style="color:#fff; font-size:14px; font-weight:600; margin-bottom:8px;">Sub-100ms Cold Start</h4>
+        <p style="color:#888; font-size:12px; line-height:1.6;">Warm-pool sandbox provisioning. GPU nodes ready in milliseconds.</p>
+      </div>
+    </div>
+
+    <!-- Architecture Pipeline -->
+    <div style="max-width:1000px; margin:0 auto 60px;">
+      <h3 style="text-align:center; font-size:20px; color:#fff; margin-bottom:32px; font-weight:600;">Sovereign Execution Pipeline</h3>
+      <div style="display:flex; gap:0; align-items:stretch; flex-wrap:wrap; justify-content:center;">
+        <!-- Step 1 -->
+        <div style="flex:1; min-width:200px; max-width:240px; background:rgba(255,255,255,0.02); border:1px solid rgba(163,230,53,0.25); border-radius:12px; padding:20px; position:relative;">
+          <div style="position:absolute; top:-12px; left:50%; transform:translateX(-50%); background:var(--lime); color:#111; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:12px;">1</div>
+          <h4 style="color:var(--lime); font-size:13px; font-weight:700; margin:8px 0 6px; text-align:center;">APIPOINTS Gateway</h4>
+          <p style="color:#888; font-size:11px; text-align:center; line-height:1.5;">mTLS • JWT Auth • Rate Limiting • API Key Verification</p>
+        </div>
+        <div style="display:flex; align-items:center; color:var(--lime); font-size:20px; padding:0 8px;">→</div>
+        <!-- Step 2 -->
+        <div style="flex:1; min-width:200px; max-width:240px; background:rgba(255,255,255,0.02); border:1px solid rgba(163,230,53,0.25); border-radius:12px; padding:20px; position:relative;">
+          <div style="position:absolute; top:-12px; left:50%; transform:translateX(-50%); background:var(--lime); color:#111; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:12px;">2</div>
+          <h4 style="color:var(--lime); font-size:13px; font-weight:700; margin:8px 0 6px; text-align:center;">Governance Engine</h4>
+          <p style="color:#888; font-size:11px; text-align:center; line-height:1.5;">Egress Filter • Spend Cap Check • Concurrency Limits</p>
+        </div>
+        <div style="display:flex; align-items:center; color:var(--lime); font-size:20px; padding:0 8px;">→</div>
+        <!-- Step 3 -->
+        <div style="flex:1; min-width:200px; max-width:240px; background:rgba(255,255,255,0.02); border:1px solid rgba(163,230,53,0.25); border-radius:12px; padding:20px; position:relative;">
+          <div style="position:absolute; top:-12px; left:50%; transform:translateX(-50%); background:var(--lime); color:#111; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:12px;">3</div>
+          <h4 style="color:var(--lime); font-size:13px; font-weight:700; margin:8px 0 6px; text-align:center;">Isolated Execution</h4>
+          <p style="color:#888; font-size:11px; text-align:center; line-height:1.5;">Daytona MicroVM • GPU Node • Code Sandbox</p>
+        </div>
+        <div style="display:flex; align-items:center; color:var(--lime); font-size:20px; padding:0 8px;">→</div>
+        <!-- Step 4 -->
+        <div style="flex:1; min-width:200px; max-width:240px; background:rgba(255,255,255,0.02); border:1px solid rgba(163,230,53,0.25); border-radius:12px; padding:20px; position:relative;">
+          <div style="position:absolute; top:-12px; left:50%; transform:translateX(-50%); background:var(--lime); color:#111; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:12px;">4</div>
+          <h4 style="color:var(--lime); font-size:13px; font-weight:700; margin:8px 0 6px; text-align:center;">Metering & Ledger</h4>
+          <p style="color:#888; font-size:11px; text-align:center; line-height:1.5;">Real-time Billing • SHA-256 Hashed Logs • SOC2 Audit</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Technical Specs Table -->
+    <div style="max-width:900px; margin:0 auto 60px;">
+      <h3 style="text-align:center; font-size:20px; color:#fff; margin-bottom:24px; font-weight:600;">Raw Compute vs. APIPOINTS Managed</h3>
+      <div style="background:rgba(17,17,17,0.8); border:1px solid var(--border); border-radius:12px; overflow:hidden;">
+        <table style="width:100%; border-collapse:collapse;">
+          <thead>
+            <tr style="border-bottom:1px solid var(--border);">
+              <th style="padding:14px 20px; text-align:left; color:#888; font-size:12px; text-transform:uppercase; letter-spacing:1px;">Feature</th>
+              <th style="padding:14px 20px; text-align:center; color:#888; font-size:12px; text-transform:uppercase; letter-spacing:1px;">Raw Compute</th>
+              <th style="padding:14px 20px; text-align:center; color:var(--lime); font-size:12px; text-transform:uppercase; letter-spacing:1px;">APIPOINTS Managed</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom:1px solid rgba(255,255,255,0.04);"><td style="padding:12px 20px; color:#ccc; font-size:13px;">Auth & Identity</td><td style="padding:12px 20px; text-align:center; color:#666; font-size:13px;">DIY</td><td style="padding:12px 20px; text-align:center; color:var(--lime); font-size:13px;">mTLS + JWT + API Keys</td></tr>
+            <tr style="border-bottom:1px solid rgba(255,255,255,0.04);"><td style="padding:12px 20px; color:#ccc; font-size:13px;">Rate Limiting</td><td style="padding:12px 20px; text-align:center; color:#666; font-size:13px;">None</td><td style="padding:12px 20px; text-align:center; color:var(--lime); font-size:13px;">Sliding window per-tenant</td></tr>
+            <tr style="border-bottom:1px solid rgba(255,255,255,0.04);"><td style="padding:12px 20px; color:#ccc; font-size:13px;">Spend Caps</td><td style="padding:12px 20px; text-align:center; color:#666; font-size:13px;">None</td><td style="padding:12px 20px; text-align:center; color:var(--lime); font-size:13px;">Hard monthly limits</td></tr>
+            <tr style="border-bottom:1px solid rgba(255,255,255,0.04);"><td style="padding:12px 20px; color:#ccc; font-size:13px;">Audit Logging</td><td style="padding:12px 20px; text-align:center; color:#666; font-size:13px;">None</td><td style="padding:12px 20px; text-align:center; color:var(--lime); font-size:13px;">SHA-256 hashed, SOC2-ready</td></tr>
+            <tr style="border-bottom:1px solid rgba(255,255,255,0.04);"><td style="padding:12px 20px; color:#ccc; font-size:13px;">Egress Filtering</td><td style="padding:12px 20px; text-align:center; color:#666; font-size:13px;">None</td><td style="padding:12px 20px; text-align:center; color:var(--lime); font-size:13px;">Domain whitelist rules</td></tr>
+            <tr style="border-bottom:1px solid rgba(255,255,255,0.04);"><td style="padding:12px 20px; color:#ccc; font-size:13px;">Billing</td><td style="padding:12px 20px; text-align:center; color:#666; font-size:13px;">Manual invoices</td><td style="padding:12px 20px; text-align:center; color:var(--lime); font-size:13px;">Real-time metering ledger</td></tr>
+            <tr><td style="padding:12px 20px; color:#ccc; font-size:13px;">SDK</td><td style="padding:12px 20px; text-align:center; color:#666; font-size:13px;">Raw API calls</td><td style="padding:12px 20px; text-align:center; color:var(--lime); font-size:13px;">Python + TypeScript SDKs</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SDK Quickstart -->
+    <div style="max-width:700px; margin:0 auto 60px;">
+      <h3 style="text-align:center; font-size:20px; color:#fff; margin-bottom:24px; font-weight:600;">Quickstart</h3>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+        <div style="background:rgba(17,17,17,0.9); border:1px solid rgba(163,230,53,0.2); border-radius:10px; padding:16px;">
+          <div style="font-size:11px; color:var(--lime); font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:10px;">Python</div>
+          <pre style="margin:0; font-family:ui-monospace,monospace; font-size:12px; color:#aaa; line-height:1.6; white-space:pre-wrap;">pip install apipoints-compute
+
+from apipoints_compute import APIPointsCompute
+
+client = APIPointsCompute("apk_live_...")
+sbx = client.sandboxes.create(
+    vcpu_count=2,
+    memory_mb=1024
+)
+result = sbx.run_code(
+    "print('Hello from APIPOINTS')"
+)</pre>
+        </div>
+        <div style="background:rgba(17,17,17,0.9); border:1px solid rgba(163,230,53,0.2); border-radius:10px; padding:16px;">
+          <div style="font-size:11px; color:var(--lime); font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:10px;">TypeScript</div>
+          <pre style="margin:0; font-family:ui-monospace,monospace; font-size:12px; color:#aaa; line-height:1.6; white-space:pre-wrap;">npm install @apipoints/compute
+
+import { APIPointsCompute } from
+  "@apipoints/compute";
+
+const client = new APIPointsCompute(
+  "apk_live_..."
+);
+const sbx = await client.createSandbox({
+  vcpu_count: 2,
+  memory_mb: 1024
+});
+const result = await sbx.runCode(
+  "console.log('Hello from APIPOINTS')"
+);</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Compute Endpoints -->
+    <div style="max-width:800px; margin:0 auto;">
+      <h3 style="text-align:center; font-size:18px; color:#fff; margin-bottom:20px; font-weight:600;">Compute Endpoints</h3>
+      <div class="endpoints-list">
+        <div class="endpoint"><span class="method" style="background:rgba(59,130,246,0.15); color:#60a5fa;">POST</span><code>/v1/compute/sandboxes</code><p>Create isolated sandbox</p></div>
+        <div class="endpoint"><span class="method" style="background:rgba(59,130,246,0.15); color:#60a5fa;">POST</span><code>/v1/compute/sandboxes/:id/code-run</code><p>Execute code in sandbox</p></div>
+        <div class="endpoint"><span class="method" style="background:rgba(59,130,246,0.15); color:#60a5fa;">POST</span><code>/v1/compute/snapshots</code><p>Create persistent snapshot</p></div>
+        <div class="endpoint"><span class="method" style="background:rgba(59,130,246,0.15); color:#60a5fa;">POST</span><code>/v1/compute/desktops</code><p>Provision VNC/WebRTC desktop</p></div>
+        <div class="endpoint"><span class="method get">GET</span><code>/v1/compute/sandboxes/:id/logs/stream</code><p>SSE log streaming</p></div>
+        <div class="endpoint"><span class="method get">GET</span><code>/v1/compute/usage</code><p>Usage summary & balance</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Cost Calculator -->
+  <section class="section" id="calculator">
+    <h2 class="section-title">Calculate Your Agent Margin</h2>
+    <p class="section-subtitle">Transparent cost breakdowns. See exactly what you pay vs. raw wholesale compute.</p>
+    <div style="max-width:700px; margin:0 auto; background:rgba(17,17,17,0.8); border:1px solid var(--border); border-radius:16px; padding:32px;">
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:24px;">
+        <div>
+          <label style="display:block; font-size:11px; color:#888; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">Active Agents</label>
+          <input type="range" id="calc-agents" min="1" max="100" value="5" style="width:100%; accent-color:var(--lime);" oninput="updateCalculator()">
+          <div style="display:flex; justify-content:space-between; font-size:12px; color:#666; margin-top:4px;"><span>1</span><span id="calc-agents-val" style="color:var(--lime); font-weight:700;">5</span><span>100</span></div>
+        </div>
+        <div>
+          <label style="display:block; font-size:11px; color:#888; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">vCPU per Sandbox</label>
+          <input type="range" id="calc-vcpu" min="1" max="8" value="1" style="width:100%; accent-color:var(--lime);" oninput="updateCalculator()">
+          <div style="display:flex; justify-content:space-between; font-size:12px; color:#666; margin-top:4px;"><span>1</span><span id="calc-vcpu-val" style="color:var(--lime); font-weight:700;">1</span><span>8</span></div>
+        </div>
+        <div>
+          <label style="display:block; font-size:11px; color:#888; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">Hours / Day</label>
+          <input type="range" id="calc-hours" min="1" max="24" value="4" style="width:100%; accent-color:var(--lime);" oninput="updateCalculator()">
+          <div style="display:flex; justify-content:space-between; font-size:12px; color:#666; margin-top:4px;"><span>1</span><span id="calc-hours-val" style="color:var(--lime); font-weight:700;">4</span><span>24</span></div>
+        </div>
+        <div>
+          <label style="display:block; font-size:11px; color:#888; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">Memory (GiB)</label>
+          <input type="range" id="calc-memory" min="0.5" max="16" step="0.5" value="2" style="width:100%; accent-color:var(--lime);" oninput="updateCalculator()">
+          <div style="display:flex; justify-content:space-between; font-size:12px; color:#666; margin-top:4px;"><span>0.5</span><span id="calc-memory-val" style="color:var(--lime); font-weight:700;">2</span><span>16</span></div>
+        </div>
+      </div>
+      <div style="border-top:1px solid var(--border); padding-top:20px;">
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; text-align:center;">
+          <div>
+            <div style="font-size:11px; color:#888; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">Wholesale (Raw)</div>
+            <div id="calc-wholesale" style="font-family:Georgia,serif; font-size:28px; color:#666;">$0.00</div>
+            <div style="font-size:11px; color:#555;">/month</div>
+          </div>
+          <div>
+            <div style="font-size:11px; color:var(--lime); text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">APIPOINTS Managed</div>
+            <div id="calc-retail" style="font-family:Georgia,serif; font-size:28px; color:var(--lime);">$0.00</div>
+            <div style="font-size:11px; color:#555;">/month</div>
+          </div>
+          <div>
+            <div style="font-size:11px; color:#888; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">Recommended Plan</div>
+            <div id="calc-plan" style="font-family:Georgia,serif; font-size:28px; color:#fff;">Free</div>
+            <div id="calc-plan-price" style="font-size:11px; color:#555;">$0/mo</div>
+          </div>
+        </div>
+        <div style="margin-top:16px; padding:12px 16px; background:rgba(163,230,53,0.05); border:1px solid rgba(163,230,53,0.15); border-radius:8px; text-align:center;">
+          <span style="font-size:12px; color:#888;">Includes: Governance, Audit Logs, Dashboard, Rate Limits, Spend Caps, SDK Access</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- Pricing -->
   <section class="section section-dark" id="pricing">
     <h2 class="section-title" data-i18n="pricingSection.title">Simple, Transparent Pricing</h2>
@@ -748,10 +963,11 @@ print(data["data"]) # Real-time LLM cost intelligence</code></pre>
         <div class="plan-price">$0<span class="per">/month</span></div>
         <p class="plan-desc">Explore the API and test basic intelligence endpoints.</p>
         <ul class="plan-features">
-          <li>5,000 credits/month</li>
+          <li>100 API credits/month</li>
           <li>10 requests/min rate limit</li>
-          <li>3 intelligence endpoints</li>
+          <li>All 5 data endpoints</li>
           <li>Community support</li>
+          <li style="color:#555; text-decoration:line-through;">Compute sandbox — read-only access</li>
         </ul>
         <a href="/register.html" class="btn btn-primary" style="display:block; text-align:center; font-size:16px; padding:16px;">Get API Key Free →</a>
       </div>
@@ -759,13 +975,13 @@ print(data["data"]) # Real-time LLM cost intelligence</code></pre>
         <div class="plan-badge">Most Popular</div>
         <div class="plan-name">Starter</div>
         <div class="plan-price">$49<span class="per">/month</span></div>
-        <p class="plan-desc">Full access to all intelligence endpoints with generous limits.</p>
+        <p class="plan-desc">Full intelligence access with $49/mo compute credits — 100% rollover.</p>
         <ul class="plan-features">
-          <li>5M credits/month</li>
+          <li>All 5 intelligence endpoints</li>
           <li>60 requests/min rate limit</li>
-          <li>All 7 intelligence endpoints</li>
-          <li>Hourly price updates</li>
-          <li>MCP-native integration</li>
+          <li><span style="color:var(--lime);">$49 compute credits/mo</span></li>
+          <li>3 concurrent sandboxes</li>
+          <li>vCPU $0.0655/hr</li>
           <li>1 seat included</li>
         </ul>
         <a href="javascript:void(0)" onclick="startCheckout('starter')" class="btn btn-primary">Start for $49/mo</a>
@@ -773,28 +989,28 @@ print(data["data"]) # Real-time LLM cost intelligence</code></pre>
       <div class="plan animate animate-delay-2">
         <div class="plan-name">Growth</div>
         <div class="plan-price">$149<span class="per">/month</span></div>
-        <p class="plan-desc">Advanced intelligence for production AI teams.</p>
+        <p class="plan-desc">Advanced intelligence + $149 compute credits. GPU sandbox access.</p>
         <ul class="plan-features">
-          <li>20M credits/month</li>
+          <li>All 5 intelligence endpoints</li>
           <li>300 requests/min rate limit</li>
+          <li><span style="color:var(--lime);">$149 compute credits/mo</span></li>
+          <li>15 concurrent sandboxes</li>
+          <li>GPU access (RTX 4090 $1.24/hr)</li>
           <li>5 team seats included</li>
-          <li>Priority support</li>
-          <li>Historical data access</li>
-          <li>Custom alert webhooks</li>
         </ul>
         <a href="javascript:void(0)" onclick="startCheckout('growth')" class="btn btn-outline" style="color:#ddd;">Start for $149/mo</a>
       </div>
       <div class="plan animate animate-delay-3">
         <div class="plan-name">Enterprise</div>
         <div class="plan-price">$499<span class="per">/month</span></div>
-        <p class="plan-desc">Enterprise-grade intelligence with maximum throughput.</p>
+        <p class="plan-desc">Maximum compute + intelligence. H100 access, custom SLAs.</p>
         <ul class="plan-features">
-          <li>50M credits/month</li>
+          <li>All 5 intelligence endpoints</li>
           <li>1,000 requests/min rate limit</li>
-          <li>20 team seats included</li>
-          <li>Dedicated support</li>
-          <li>SLA guarantees</li>
-          <li>Custom integrations</li>
+          <li><span style="color:var(--lime);">$499 compute credits/mo</span></li>
+          <li>50 concurrent sandboxes</li>
+          <li>H100 access ($4.55/hr)</li>
+          <li>20 team seats + dedicated support</li>
         </ul>
         <a href="javascript:void(0)" onclick="startCheckout('enterprise')" class="btn btn-outline" style="color:#ddd;">Start for $499/mo</a>
       </div>
@@ -1040,7 +1256,49 @@ print(data["data"]) # Real-time LLM cost intelligence</code></pre>
       }
       initPricingWidget();
       recalculateROI();
+      updateCalculator();
     });
+
+    // Compute Cost Calculator
+    function updateCalculator() {
+      const agents = parseInt(document.getElementById('calc-agents').value);
+      const vcpu = parseInt(document.getElementById('calc-vcpu').value);
+      const hours = parseInt(document.getElementById('calc-hours').value);
+      const memory = parseFloat(document.getElementById('calc-memory').value);
+      document.getElementById('calc-agents-val').textContent = agents;
+      document.getElementById('calc-vcpu-val').textContent = vcpu;
+      document.getElementById('calc-hours-val').textContent = hours;
+      document.getElementById('calc-memory-val').textContent = memory;
+      // Wholesale rates (raw Daytona)
+      const WHOLESALE_VCPU = 0.05;
+      const WHOLESALE_MEM = 0.015;
+      // APIPOINTS retail rates
+      const RETAIL_VCPU = 0.0655;
+      const RETAIL_MEM = 0.021;
+      const daysInMonth = 30;
+      const vcpuCost = agents * vcpu * hours * daysInMonth;
+      const memCost = agents * memory * hours * daysInMonth;
+      const wholesale = (vcpuCost * WHOLESALE_VCPU) + (memCost * WHOLESALE_MEM);
+      const retail = (vcpuCost * RETAIL_VCPU) + (memCost * RETAIL_MEM);
+      document.getElementById('calc-wholesale').textContent = '$' + wholesale.toFixed(2);
+      document.getElementById('calc-retail').textContent = '$' + retail.toFixed(2);
+      // Recommend plan
+      const planEl = document.getElementById('calc-plan');
+      const planPriceEl = document.getElementById('calc-plan-price');
+      if (retail <= 0) {
+        planEl.textContent = 'Free';
+        planPriceEl.textContent = '$0/mo';
+      } else if (retail <= 49) {
+        planEl.textContent = 'Starter';
+        planPriceEl.textContent = '$49/mo';
+      } else if (retail <= 149) {
+        planEl.textContent = 'Growth';
+        planPriceEl.textContent = '$149/mo';
+      } else {
+        planEl.textContent = 'Enterprise';
+        planPriceEl.textContent = '$499/mo';
+      }
+    }
 
     // Pricing Widget Logic
     let allWidgetModels = [];

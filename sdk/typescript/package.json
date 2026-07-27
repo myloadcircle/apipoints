@@ -1,0 +1,17 @@
+{
+  "name": "@apipoints/compute",
+  "version": "1.0.0",
+  "description": "APIPOINTS Compute SDK — Daytona sandbox execution with governance & metering",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist", "README.md"],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "keywords": ["apipoints", "compute", "daytona", "sandbox", "gpu", "ai", "agents"],
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.5.0"
+  }
+}
