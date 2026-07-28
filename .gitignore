@@ -2,6 +2,12 @@ node_modules/
 dist/
 .wrangler/
 .dev.vars
+.env.local
+.env
+.env.*
+!.env.example
+!.env.exchange.example
 *.log
+*.tsbuildinfo
 .DS_Store
 Thumbs.db
