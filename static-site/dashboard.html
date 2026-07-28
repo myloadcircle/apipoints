@@ -170,6 +170,52 @@
           <div id="agents-table-wrap" style="display:none;" class="overflow-x"></div>
         </div>
       </div>
+      <div id="section-thresholds" class="section collapsed">
+        <div class="section-header" onclick="toggleSection('thresholds')">
+          <h2>🚨 Threshold Alerts</h2><span class="arrow">▼</span>
+        </div>
+        <div class="section-body">
+          <p class="text-sm text-muted mb-4">Set cost and latency thresholds for any model. Get notified when they're crossed.</p>
+          <div class="inline-flex mb-4" style="flex-wrap:wrap; gap:12px;">
+            <div class="flex-1" style="min-width:180px;">
+              <label class="label">Model</label>
+              <select class="input" id="threshold-model" style="cursor:pointer;">
+                <option value="">Select model...</option>
+              </select>
+            </div>
+            <div class="flex-1" style="min-width:120px;">
+              <label class="label">Cost Threshold ($/1M tokens)</label>
+              <input class="input" id="threshold-cost" type="number" step="0.001" min="0" placeholder="e.g. 0.15" />
+            </div>
+            <div class="flex-1" style="min-width:120px;">
+              <label class="label">Latency Threshold (ms)</label>
+              <input class="input" id="threshold-latency" type="number" step="1" min="0" placeholder="e.g. 500" />
+            </div>
+            <div class="flex-1" style="min-width:140px;">
+              <label class="label">Notify via</label>
+              <select class="input" id="threshold-channel" onchange="toggleThresholdFields()" style="cursor:pointer;">
+                <option value="email">Email</option>
+                <option value="slack">Slack</option>
+                <option value="webhook">Webhook</option>
+              </select>
+            </div>
+            <div class="flex-1" style="min-width:200px; display:none;" id="threshold-slack-field">
+              <label class="label">Slack Webhook URL</label>
+              <input class="input" id="threshold-slack-url" type="url" placeholder="https://hooks.slack.com/..." />
+            </div>
+            <div class="flex-1" style="min-width:200px; display:none;" id="threshold-webhook-field">
+              <label class="label">Webhook URL</label>
+              <input class="input" id="threshold-webhook-url" type="url" placeholder="https://your-api.com/webhook" />
+            </div>
+            <div><label class="label">&nbsp;</label><button class="btn btn-primary" onclick="createThreshold()" id="threshold-save-btn">Save Alert</button></div>
+          </div>
+          <div id="threshold-toast" style="display:none; background:rgba(163,230,53,0.1); border:1px solid rgba(163,230,53,0.3); color:var(--lime); padding:10px 16px; border-radius:8px; font-size:13px; margin-bottom:16px;"></div>
+          <div id="threshold-error" style="display:none; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); color:#ef4444; padding:10px 16px; border-radius:8px; font-size:13px; margin-bottom:16px;"></div>
+          <div id="thresholds-loading" class="text-sm text-muted">Loading thresholds...</div>
+          <div id="thresholds-empty" style="display:none;" class="text-sm text-muted">No thresholds set. Create one above.</div>
+          <div id="thresholds-table-wrap" style="display:none;" class="overflow-x"></div>
+        </div>
+      </div>
       <div id="section-api-tester" class="section collapsed">
         <div class="section-header" onclick="toggleSection('api-tester')">
           <h2 data-i18n="dashboard.apiPlayground">🧪 API Playground</h2><span class="arrow">▼</span>
@@ -325,6 +371,103 @@
     }
 
     loadProfile();
+
+    // --- Threshold Alerts ---
+    const ALL_MODELS = [
+      'gpt-4o','gpt-4o-mini','gpt-4.1','gpt-4.1-mini','gpt-4.1-nano','o3','o3-mini','o4-mini',
+      'claude-opus-4','claude-sonnet-4','claude-3-5-haiku','claude-3-5-sonnet',
+      'gemini-2.5-pro','gemini-2.5-flash','gemini-2.0-flash','gemini-1.5-pro',
+      'deepseek-chat','deepseek-reasoner',
+      'llama-4-maverick','llama-4-scout','llama-3.1-70b','llama-3.1-405b',
+      'command-r-plus','mistral-large','mistral-small'
+    ];
+
+    function populateModelSelect() {
+      const sel = document.getElementById('threshold-model');
+      ALL_MODELS.forEach(m => { const opt = document.createElement('option'); opt.value = m; opt.textContent = m; sel.appendChild(opt); });
+    }
+
+    function toggleThresholdFields() {
+      const ch = document.getElementById('threshold-channel').value;
+      document.getElementById('threshold-slack-field').style.display = ch === 'slack' ? 'block' : 'none';
+      document.getElementById('threshold-webhook-field').style.display = ch === 'webhook' ? 'block' : 'none';
+    }
+
+    function showThresholdToast(msg) {
+      const el = document.getElementById('threshold-toast');
+      el.textContent = msg; el.style.display = 'block';
+      setTimeout(() => { el.style.display = 'none'; }, 3000);
+    }
+
+    function showThresholdError(msg) {
+      const el = document.getElementById('threshold-error');
+      el.textContent = msg; el.style.display = 'block';
+      setTimeout(() => { el.style.display = 'none'; }, 5000);
+    }
+
+    async function createThreshold() {
+      const modelId = document.getElementById('threshold-model').value;
+      const costVal = document.getElementById('threshold-cost').value;
+      const latencyVal = document.getElementById('threshold-latency').value;
+      const channel = document.getElementById('threshold-channel').value;
+      const slackUrl = document.getElementById('threshold-slack-url').value.trim();
+      const webhookUrl = document.getElementById('threshold-webhook-url').value.trim();
+
+      if (!modelId) { showThresholdError('Select a model.'); return; }
+      if (!costVal && !latencyVal) { showThresholdError('Set at least one threshold.'); return; }
+      if (channel === 'slack' && !slackUrl) { showThresholdError('Slack webhook URL required.'); return; }
+      if (channel === 'webhook' && !webhookUrl) { showThresholdError('Webhook URL required.'); return; }
+
+      const payload: any = { model_id: modelId, notification_channel: channel };
+      if (costVal) payload.cost_threshold = parseFloat(costVal);
+      if (latencyVal) payload.latency_threshold = parseFloat(latencyVal);
+      if (channel === 'slack') payload.slack_webhook_url = slackUrl;
+      if (channel === 'webhook') payload.webhook_url = webhookUrl;
+
+      const btn = document.getElementById('threshold-save-btn');
+      btn.disabled = true; btn.textContent = 'Saving...';
+      try {
+        await apiFetch('/api/thresholds', { method: 'POST', body: JSON.stringify(payload) });
+        showThresholdToast('Alert created successfully.');
+        document.getElementById('threshold-cost').value = '';
+        document.getElementById('threshold-latency').value = '';
+        document.getElementById('threshold-slack-url').value = '';
+        document.getElementById('threshold-webhook-url').value = '';
+        await loadThresholds();
+      } catch (e) { showThresholdError('Failed: ' + e.message); }
+      btn.disabled = false; btn.textContent = 'Save Alert';
+    }
+
+    async function loadThresholds() {
+      document.getElementById('thresholds-loading').style.display = 'block';
+      document.getElementById('thresholds-empty').style.display = 'none';
+      document.getElementById('thresholds-table-wrap').style.display = 'none';
+      try {
+        const data = await apiFetch('/api/thresholds');
+        const list = data.thresholds || [];
+        document.getElementById('thresholds-loading').style.display = 'none';
+        if (list.length === 0) { document.getElementById('thresholds-empty').style.display = 'block'; return; }
+        let html = '<table><thead><tr><th>Model</th><th>Cost Threshold</th><th>Latency Threshold</th><th>Channel</th><th>Created</th><th>Actions</th></tr></thead><tbody>';
+        list.forEach(t => {
+          html += '<tr><td>' + t.model_id + '</td><td>' + (t.cost_threshold != null ? '$' + t.cost_threshold.toFixed(4) + '/1M' : '—') + '</td><td>' + (t.latency_threshold != null ? t.latency_threshold + 'ms' : '—') + '</td><td><span class="badge badge-gray">' + t.notification_channel + '</span></td><td class="text-xs text-muted">' + new Date(t.created_at).toLocaleDateString() + '</td><td><button class="btn btn-sm btn-danger" onclick="deleteThreshold(\'' + t.id + '\')">Delete</button></td></tr>';
+        });
+        html += '</tbody></table>';
+        document.getElementById('thresholds-table-wrap').innerHTML = html;
+        document.getElementById('thresholds-table-wrap').style.display = 'block';
+      } catch (e) { document.getElementById('thresholds-loading').textContent = 'Failed: ' + e.message; }
+    }
+
+    async function deleteThreshold(id) {
+      if (!confirm('Delete this threshold alert?')) return;
+      try { await apiFetch('/api/thresholds/' + id, { method: 'DELETE' }); await loadThresholds(); } catch (e) { showThresholdError('Failed: ' + e.message); }
+    }
+
+    populateModelSelect();
+    toggleThresholdFields();
+
+    // Load thresholds when section is opened (via toggleSection override)
+    const _origToggle = toggleSection;
+    toggleSection = function(name) { _origToggle(name); if (name === 'thresholds') loadThresholds(); };
 
     // API Playground
     let apiKeyCache = '';

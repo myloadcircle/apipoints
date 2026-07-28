@@ -16,3 +16,6 @@ API_POINTS_URL = "https://apipoints.pages.dev"
 
 [env.production]
 vars = { API_POINTS_URL = "https://apipoints.pages.dev" }
+
+[[triggers]]
+cron = "*/5 * * * *"

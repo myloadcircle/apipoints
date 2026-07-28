@@ -1,5 +1,6 @@
 import { PROVIDERS, PRICING, BENCHMARKS, DEPRECATIONS, CHANGES, COST_RECOMMENDATIONS, RATE_LIMITS, DATA_VERSION, LAST_UPDATED, type ModelPricing, type Deprecation } from './intelligence';
 import { sendVerificationEmail, sendPasswordResetEmail, sendWelcomeEmail, sendBillingConfirmation, type EmailEnv } from './email';
+import { sendThresholdNotification, type ThresholdPayload } from './notify';
 
 interface Env extends EmailEnv {
   DB: D1Database;
@@ -690,6 +691,43 @@ export default {
         return json({ deleted: true });
       }
 
+      // Threshold Alerts
+      if (path === '/api/thresholds' && method === 'POST') {
+        const body = await request.json() as any;
+        const { model_id, cost_threshold, latency_threshold, notification_channel, webhook_url, slack_webhook_url } = body;
+        if (!model_id) return json({ error: 'model_id required' }, 400);
+        if (cost_threshold == null && latency_threshold == null) return json({ error: 'At least one threshold (cost or latency) required' }, 400);
+        if (cost_threshold != null && (typeof cost_threshold !== 'number' || cost_threshold < 0)) return json({ error: 'cost_threshold must be a non-negative number' }, 400);
+        if (latency_threshold != null && (typeof latency_threshold !== 'number' || latency_threshold < 0)) return json({ error: 'latency_threshold must be a non-negative number' }, 400);
+        const channel = notification_channel || 'email';
+        if (!['email', 'webhook', 'slack'].includes(channel)) return json({ error: 'notification_channel must be email, webhook, or slack' }, 400);
+        if (channel === 'webhook' && !webhook_url) return json({ error: 'webhook_url required for webhook channel' }, 400);
+        if (channel === 'slack' && !slack_webhook_url) return json({ error: 'slack_webhook_url required for slack channel' }, 400);
+
+        const id = generateId();
+        await env.DB.prepare('INSERT INTO thresholds (id, user_id, model_id, cost_threshold, latency_threshold, notification_channel, webhook_url, slack_webhook_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?)').bind(id, bearerUser.id, model_id, cost_threshold ?? null, latency_threshold ?? null, channel, webhook_url ?? null, slack_webhook_url ?? null).run();
+        return json({ id, model_id, cost_threshold: cost_threshold ?? null, latency_threshold: latency_threshold ?? null, notification_channel: channel });
+      }
+
+      if (path === '/api/thresholds' && method === 'GET') {
+        const modelId = url.searchParams.get('model_id');
+        let query = 'SELECT * FROM thresholds WHERE user_id = ?';
+        const bindings: any[] = [bearerUser.id];
+        if (modelId) { query += ' AND model_id = ?'; bindings.push(modelId); }
+        query += ' ORDER BY created_at DESC';
+        const result = await env.DB.prepare(query).bind(...bindings).all();
+        return json({ thresholds: result.results });
+      }
+
+      if (path.startsWith('/api/thresholds/') && method === 'DELETE') {
+        const thresholdId = path.split('/').pop();
+        const threshold = await env.DB.prepare('SELECT id FROM thresholds WHERE id = ? AND user_id = ?').bind(thresholdId, bearerUser.id).first();
+        if (!threshold) return json({ error: 'Threshold not found' }, 404);
+        await env.DB.prepare('DELETE FROM threshold_notifications WHERE threshold_id = ?').bind(thresholdId).run();
+        await env.DB.prepare('DELETE FROM thresholds WHERE id = ?').bind(thresholdId).run();
+        return json({ deleted: true });
+      }
+
       // API Key management
       if (path === '/api/api-keys/create' && method === 'POST') {
         const body = await request.json() as any;
@@ -822,6 +860,84 @@ export default {
     } catch (err: any) {
       console.error('Worker error:', err?.message || err);
       return json({ error: 'Internal server error' }, 500);
+    }
+  },
+
+  // Cron handler: runs every 5 minutes via wrangler.toml [[triggers]]
+  async scheduled(event: ScheduledEvent, env: Env): Promise<void> {
+    try {
+      // Fetch all thresholds
+      const { results: thresholds } = await env.DB.prepare('SELECT t.*, u.email FROM thresholds t JOIN users u ON t.user_id = u.id').all() as any;
+      if (!thresholds || thresholds.length === 0) return;
+
+      // Build a lookup of current model pricing from intelligence data
+      const pricingMap = new Map<string, ModelPricing>();
+      for (const p of PRICING) pricingMap.set(p.model, p);
+
+      // Benchmark lookup for latency (mt_bench as proxy)
+      const benchmarkMap = new Map<string, number>();
+      for (const b of BENCHMARKS) { if (b.scores.mt_bench) benchmarkMap.set(b.model, b.scores.mt_bench); }
+
+      for (const t of thresholds) {
+        const model = pricingMap.get(t.model_id);
+        const benchmark = benchmarkMap.get(t.model_id);
+
+        let crossed = false;
+        let event = '' as ThresholdPayload['event'];
+        let currentValue = 0;
+        let thresholdVal = 0;
+
+        // Check cost threshold
+        if (t.cost_threshold != null && model) {
+          const avgCost = (model.input_cost_per_1m + model.output_cost_per_1m) / 2;
+          if (avgCost >= t.cost_threshold) {
+            crossed = true;
+            event = 'cost_threshold_crossed';
+            currentValue = avgCost;
+            thresholdVal = t.cost_threshold;
+          }
+        }
+
+        // Check latency threshold
+        if (!crossed && t.latency_threshold != null && benchmark != null) {
+          // mt_bench is on a 1-10 scale; convert to approximate ms (lower is better)
+          // We treat mt_bench score * 100 as a latency proxy: higher score = lower effective latency
+          // For threshold check: if benchmark score * 100 >= threshold, it means latency is acceptable
+          // We invert: if (10 - benchmark) * 100 >= threshold, latency is crossed
+          const latencyProxy = (10 - benchmark) * 100;
+          if (latencyProxy >= t.latency_threshold) {
+            crossed = true;
+            event = 'latency_threshold_crossed';
+            currentValue = latencyProxy;
+            thresholdVal = t.latency_threshold;
+          }
+        }
+
+        if (!crossed) continue;
+
+        // Rate limit: max 1 notification per threshold per 10 minutes
+        const tenMinAgo = new Date(Date.now() - 600000).toISOString();
+        const recent = await env.DB.prepare('SELECT id FROM threshold_notifications WHERE threshold_id = ? AND notified_at > ? LIMIT 1').bind(t.id, tenMinAgo).first();
+        if (recent) continue;
+
+        // Send notification
+        const payload: ThresholdPayload = {
+          model: t.model_id,
+          event,
+          current_value: currentValue,
+          threshold: thresholdVal,
+          timestamp: new Date().toISOString(),
+        };
+
+        const sent = await sendThresholdNotification(env, t.notification_channel, payload, t.email, t.webhook_url, t.slack_webhook_url);
+
+        // Log notification attempt
+        if (sent) {
+          await env.DB.prepare('INSERT INTO threshold_notifications (threshold_id, event_type) VALUES (?, ?)').bind(t.id, event).run();
+        }
+      }
+    } catch (err: any) {
+      console.error('Cron threshold check error:', err?.message || err);
     }
   },
 };
