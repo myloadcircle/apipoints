@@ -149,15 +149,27 @@
           <h2 data-i18n="dashboard.usageMetrics">📊 Usage Metrics</h2><span class="arrow">▼</span>
         </div>
         <div class="section-body">
-          <div class="coming-soon"><div class="emoji">📊</div><p data-i18n="dashboard.usageComing">Usage metrics coming soon. Track API calls, tokens, and costs here.</p></div>
+          <div class="grid" style="grid-template-columns:repeat(3,1fr); margin-bottom:20px;">
+            <div class="card"><h3>Requests</h3><div class="value" id="usage-total-req">0</div><div class="desc">All time</div></div>
+            <div class="card"><h3>Credits Spent</h3><div class="value" id="usage-total-credits">0</div><div class="desc">All time</div></div>
+            <div class="card"><h3>Top Endpoint</h3><div class="value" id="usage-top-endpoint" style="font-size:14px;">-</div><div class="desc">By request count</div></div>
+          </div>
+          <div id="usage-loading" class="text-sm text-muted">Loading usage...</div>
+          <div id="usage-chart-wrap" style="display:none;">
+            <label class="label">Requests — last 14 days</label>
+            <canvas id="usage-chart" height="140" style="width:100%; background:rgba(0,0,0,0.25); border:1px solid var(--border); border-radius:8px; margin-top:6px;"></canvas>
+          </div>
+          <div id="usage-endpoint-wrap" style="display:none;" class="mt-4 overflow-x"></div>
         </div>
       </div>
       <div id="section-logs" class="section collapsed">
         <div class="section-header" onclick="toggleSection('logs')">
-          <h2 data-i18n="dashboard.logs">📋 Logs</h2><span class="arrow">▼</span>
+          <h2 data-i18n="dashboard.logs">📋 Recent Requests</h2><span class="arrow">▼</span>
         </div>
         <div class="section-body">
-          <div class="coming-soon"><div class="emoji">📋</div><p data-i18n="dashboard.logsComing">Logs coming soon. View API request history and errors here.</p></div>
+          <div id="logs-loading" class="text-sm text-muted">Loading request log...</div>
+          <div id="logs-empty" style="display:none;" class="text-sm text-muted">No API requests yet. Try the playground below.</div>
+          <div id="logs-table-wrap" style="display:none;" class="overflow-x"></div>
         </div>
       </div>
       <div id="section-agents" class="section collapsed">
@@ -168,6 +180,30 @@
           <div id="agents-loading" class="text-sm text-muted">Loading agents...</div>
           <div id="agents-empty" style="display:none;" class="text-sm text-muted" data-i18n="dashboard.noAgents">No agents yet.</div>
           <div id="agents-table-wrap" style="display:none;" class="overflow-x"></div>
+        </div>
+      </div>
+      <div id="section-compute" class="section collapsed">
+        <div class="section-header" onclick="toggleSection('compute')">
+          <h2>⚡ Compute Sandboxes</h2><span class="arrow">▼</span>
+        </div>
+        <div class="section-body">
+          <p class="text-sm text-muted mb-4">Spin up edge sandboxes via Daytona. Billed from your compute wallet in USD. Available on paid plans.</p>
+          <div class="grid" style="grid-template-columns:repeat(3,1fr); margin-bottom:20px;">
+            <div class="card"><h3>Wallet Balance</h3><div class="value" id="compute-balance">-</div><div class="desc">USD available</div></div>
+            <div class="card"><h3>Active Sandboxes</h3><div class="value" id="compute-active">-</div><div class="desc">/ concurrent limit</div></div>
+            <div class="card"><h3>Monthly Usage</h3><div class="value" id="compute-monthly">-</div><div class="desc">USD this month</div></div>
+          </div>
+          <div id="compute-error" style="display:none; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); color:#ef4444; padding:10px 16px; border-radius:8px; font-size:13px; margin-bottom:16px;"></div>
+          <div class="inline-flex mb-4">
+            <div class="flex-1" style="min-width:140px;"><label class="label">Name (optional)</label><input class="input" id="sandbox-name" placeholder="my-sandbox" /></div>
+            <div class="flex-1" style="min-width:140px;"><label class="label">Size</label><select class="input" id="sandbox-size" style="cursor:pointer;"><option value="daytona-small" selected>Small · 1 vCPU / 1GB</option><option value="daytona-medium">Medium · 2 vCPU / 4GB</option><option value="daytona-large">Large · 4 vCPU / 8GB</option></select></div>
+            <div class="flex-1" style="min-width:100px;"><label class="label">vCPU</label><input class="input" id="sandbox-cpu" type="number" min="1" max="4" value="1" /></div>
+            <div class="flex-1" style="min-width:100px;"><label class="label">Memory (MB)</label><input class="input" id="sandbox-memory" type="number" min="512" step="512" value="1024" /></div>
+            <div><label class="label">&nbsp;</label><button class="btn btn-primary" onclick="createSandbox()" id="sandbox-create-btn">Create Sandbox</button></div>
+          </div>
+          <div id="compute-loading" class="text-sm text-muted">Loading compute...</div>
+          <div id="sandboxes-table-wrap" style="display:none;" class="overflow-x"></div>
+          <div id="sandboxes-empty" style="display:none;" class="text-sm text-muted mt-2">No sandboxes yet. Create one above.</div>
         </div>
       </div>
       <div id="section-thresholds" class="section collapsed">
@@ -265,7 +301,7 @@
     }
     function showCopyMsg() { const el = document.getElementById('copy-msg'); el.classList.add('show'); setTimeout(() => el.classList.remove('show'), 2000); }
     function logout() { localStorage.removeItem('ap_token'); localStorage.removeItem('ap_user'); window.location.href = '/login.html'; }
-    function toggleSection(name) { const el = document.getElementById('section-' + name); const collapsed = el.classList.toggle('collapsed'); if (!collapsed) { if (name === 'api-keys') loadKeys(); if (name === 'credits') loadCredits(); if (name === 'agents') loadAgents(); } }
+    function toggleSection(name) { const el = document.getElementById('section-' + name); const collapsed = el.classList.toggle('collapsed'); if (!collapsed) { if (name === 'api-keys') loadKeys(); if (name === 'credits') loadCredits(); if (name === 'agents') loadAgents(); if (name === 'usage') loadUsage(); if (name === 'logs') loadLogs(); if (name === 'compute') loadCompute(); } }
     async function copyToClipboard(text) { try { await navigator.clipboard.writeText(text); } catch { const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); } showCopyMsg(); }
     function maskKey(key) { if (!key || key.length <= 8) return '••••••••'; return key.slice(0, 4) + '••••••••' + key.slice(-4); }
     function badge(status) { const map = { 'active':'badge-green','completed':'badge-green','success':'badge-green','revoked':'badge-red','failed':'badge-red','error':'badge-red','running':'badge-gray' }; return '<span class="badge ' + (map[status] || 'badge-gray') + '">' + status + '</span>'; }
@@ -280,15 +316,17 @@
     async function loadProfile() {
       try {
         const data = await apiFetch('/api/auth/me');
-        document.getElementById('user-email').textContent = data.email;
-        document.getElementById('stat-email').textContent = data.email;
-        const plan = data.plan || 'free';
+        const email = data.user?.email || '';
+        document.getElementById('user-email').textContent = email;
+        document.getElementById('stat-email').textContent = email;
+        const plan = (data.subscription?.plan) || 'free';
         document.getElementById('current-plan-name').textContent = plan.charAt(0).toUpperCase() + plan.slice(1);
         document.getElementById('plan-badge').style.display = 'block';
         document.getElementById('credits-display').textContent = (data.credits || 0).toLocaleString();
         document.getElementById('stat-credits').textContent = (data.credits || 0).toLocaleString();
         document.getElementById('loading').style.display = 'none';
         document.getElementById('dashboard-content').style.display = 'block';
+        loadUsage();
       } catch (e) { showError('Session expired. Please login again.'); setTimeout(() => { window.location.href = '/login.html'; }, 2000); }
     }
 
@@ -368,6 +406,129 @@
     async function deleteAgent(id) {
       if (!confirm('Delete this agent?')) return;
       try { await apiFetch('/api/agents/' + id, { method: 'DELETE' }); await loadAgents(); } catch (e) { showError('Failed to delete agent: ' + e.message); }
+    }
+
+    // --- Usage Metrics ---
+    async function loadUsage() {
+      try {
+        const data = await apiFetch('/api/usage?days=14');
+        document.getElementById('usage-total-req').textContent = (data.summary?.total_requests || 0).toLocaleString();
+        document.getElementById('usage-total-credits').textContent = (data.summary?.total_credits || 0).toLocaleString();
+        const endpoints = data.by_endpoint || [];
+        document.getElementById('usage-top-endpoint').textContent = endpoints.length ? endpoints[0].endpoint : '—';
+        document.getElementById('usage-loading').style.display = 'none';
+
+        const byDay = data.by_day || [];
+        if (byDay.length) {
+          renderUsageChart(byDay);
+          document.getElementById('usage-chart-wrap').style.display = 'block';
+        }
+        if (endpoints.length) {
+          let html = '<label class="label">Requests by endpoint</label><table><thead><tr><th>Endpoint</th><th>Requests</th><th>Credits</th></tr></thead><tbody>';
+          endpoints.forEach(e => { html += '<tr><td><code class="font-mono text-xs">' + e.endpoint + '</code></td><td>' + e.requests.toLocaleString() + '</td><td>' + (e.credits || 0).toLocaleString() + '</td></tr>'; });
+          html += '</tbody></table>';
+          document.getElementById('usage-endpoint-wrap').innerHTML = html;
+          document.getElementById('usage-endpoint-wrap').style.display = 'block';
+        }
+      } catch (e) { document.getElementById('usage-loading').textContent = 'Failed to load usage: ' + e.message; }
+    }
+
+    function renderUsageChart(byDay) {
+      const canvas = document.getElementById('usage-chart');
+      const dpr = window.devicePixelRatio || 1;
+      const w = canvas.parentElement.clientWidth;
+      const h = 140;
+      canvas.width = w * dpr; canvas.height = h * dpr;
+      const ctx = canvas.getContext('2d');
+      ctx.scale(dpr, dpr);
+      ctx.clearRect(0, 0, w, h);
+      const max = Math.max(1, ...byDay.map(d => d.requests));
+      const pad = 8, bw = Math.max(6, (w - pad * 2) / byDay.length - 4);
+      const lime = '#a3e635';
+      byDay.forEach((d, i) => {
+        const x = pad + i * ((w - pad * 2) / byDay.length);
+        const bh = (d.requests / max) * (h - 24);
+        ctx.fillStyle = lime;
+        ctx.fillRect(x, h - 16 - bh, bw, bh);
+        ctx.fillStyle = '#888';
+        ctx.font = '9px Inter, sans-serif';
+        ctx.fillText(String(d.requests), x, h - 20 - bh);
+        ctx.fillText(d.day.slice(5), x, h - 4);
+      });
+    }
+
+    // --- Request Log ---
+    async function loadLogs() {
+      document.getElementById('logs-loading').style.display = 'block';
+      document.getElementById('logs-empty').style.display = 'none';
+      document.getElementById('logs-table-wrap').style.display = 'none';
+      try {
+        const data = await apiFetch('/api/usage');
+        const recent = data.recent || [];
+        document.getElementById('logs-loading').style.display = 'none';
+        if (recent.length === 0) { document.getElementById('logs-empty').style.display = 'block'; return; }
+        let html = '<table><thead><tr><th>Time</th><th>Endpoint</th><th>Credits</th></tr></thead><tbody>';
+        recent.forEach(r => {
+          html += '<tr><td class="text-xs text-muted">' + new Date(r.created_at).toLocaleString() + '</td><td><code class="font-mono text-xs">' + r.endpoint + '</code></td><td>' + r.credits_used + '</td></tr>';
+        });
+        html += '</tbody></table>';
+        document.getElementById('logs-table-wrap').innerHTML = html;
+        document.getElementById('logs-table-wrap').style.display = 'block';
+      } catch (e) { document.getElementById('logs-loading').textContent = 'Failed to load logs: ' + e.message; }
+    }
+
+    // --- Compute Sandboxes ---
+    function showComputeError(msg) {
+      const el = document.getElementById('compute-error');
+      el.textContent = msg; el.style.display = 'block';
+      setTimeout(() => { el.style.display = 'none'; }, 5000);
+    }
+
+    async function loadCompute() {
+      document.getElementById('compute-loading').style.display = 'block';
+      try {
+        const data = await apiFetch('/api/compute');
+        document.getElementById('compute-loading').style.display = 'none';
+        const w = data.wallet || {};
+        const tier = data.tier || {};
+        document.getElementById('compute-balance').textContent = '$' + (w.credit_balance_usd || 0).toFixed(2);
+        document.getElementById('compute-active').textContent = (w.active_sandboxes || 0) + ' / ' + (tier.maxConcurrent || 0);
+        document.getElementById('compute-monthly').textContent = '$' + (w.monthly_usage_usd || 0).toFixed(2);
+
+        const sandboxes = data.sandboxes || [];
+        if (sandboxes.length === 0) { document.getElementById('sandboxes-empty').style.display = 'block'; document.getElementById('sandboxes-table-wrap').style.display = 'none'; return; }
+        document.getElementById('sandboxes-empty').style.display = 'none';
+        let html = '<label class="label">Sandboxes</label><table><thead><tr><th>Name</th><th>Status</th><th>Resources</th><th>Created</th><th>Actions</th></tr></thead><tbody>';
+        sandboxes.forEach(s => {
+          const res = (s.gpu_type ? s.gpu_type.toUpperCase() + ' · ' : '') + (s.vcpu_count || 1) + ' vCPU · ' + (s.memory_mb || 512) + 'MB';
+          html += '<tr><td><code class="font-mono text-xs">' + s.sandbox_id.slice(0, 8) + '</code></td><td>' + badge(s.status) + '</td><td class="text-xs">' + res + '</td><td class="text-xs text-muted">' + new Date(s.created_at).toLocaleDateString() + '</td><td>' + (['running', 'provisioning'].includes(s.status) ? '<button class="btn btn-sm btn-danger" onclick="destroySandbox(\'' + s.sandbox_id + '\')">Destroy</button>' : '') + '</td></tr>';
+        });
+        html += '</tbody></table>';
+        document.getElementById('sandboxes-table-wrap').innerHTML = html;
+        document.getElementById('sandboxes-table-wrap').style.display = 'block';
+      } catch (e) { document.getElementById('compute-loading').textContent = 'Failed to load compute: ' + e.message; }
+    }
+
+    async function createSandbox() {
+      const btn = document.getElementById('sandbox-create-btn');
+      btn.disabled = true; btn.textContent = 'Creating...';
+      const body = {
+        name: document.getElementById('sandbox-name').value.trim() || null,
+        snapshot: document.getElementById('sandbox-size').value,
+        vcpu_count: parseInt(document.getElementById('sandbox-cpu').value) || 1,
+        memory_mb: parseInt(document.getElementById('sandbox-memory').value) || 1024,
+      };
+      try {
+        await apiFetch('/api/compute/sandboxes', { method: 'POST', body: JSON.stringify(body) });
+        document.getElementById('sandbox-name').value = '';
+        await loadCompute();
+      } catch (e) { showComputeError(e.message); }
+      btn.disabled = false; btn.textContent = 'Create Sandbox';
+    }
+
+    async function destroySandbox(id) {
+      if (!confirm('Destroy this sandbox? Compute charges stop immediately.')) return;
+      try { await apiFetch('/api/compute/sandboxes/' + id, { method: 'DELETE' }); await loadCompute(); } catch (e) { showComputeError(e.message); }
     }
 
     loadProfile();

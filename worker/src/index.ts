@@ -11,7 +11,25 @@ interface Env extends EmailEnv {
   STRIPE_PRICE_ENTERPRISE?: string;
   API_POINTS_URL?: string;
   JWT_SECRET?: string;
+  DAYTONA_API_KEY?: string;
+  DAYTONA_BASE_URL?: string;
 }
+
+// Compute pricing (mirrors compute gateway METERING_RATES)
+const COMPUTE_TIERS = {
+  free: { computeCreditsUsd: 0, canUseCompute: false, maxConcurrent: 0 },
+  starter: { computeCreditsUsd: 49, canUseCompute: true, maxConcurrent: 3 },
+  growth: { computeCreditsUsd: 149, canUseCompute: true, maxConcurrent: 15 },
+  enterprise: { computeCreditsUsd: 499, canUseCompute: true, maxConcurrent: 50 },
+};
+
+const METERING_RATES: Record<string, { wholesale: number; retail: number }> = {
+  vcpu_hour: { wholesale: 0.0504, retail: 0.0655 },
+  memory_gib_hour: { wholesale: 0.0162, retail: 0.0210 },
+  gpu_hour: { wholesale: 0.99, retail: 1.24 },
+  gpu_hour_h100: { wholesale: 3.50, retail: 4.55 },
+  storage_gb_month: { wholesale: 0.08, retail: 0.12 },
+};
 
 function json(data: any, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -248,6 +266,13 @@ async function deductCredits(db: D1Database, userId: string, amount: number): Pr
 
 async function logApiUsage(db: D1Database, userId: string, endpoint: string) {
   await db.prepare('INSERT INTO api_usage (user_id, endpoint, credits_used) VALUES (?, ?, 1)').bind(userId, endpoint).run();
+}
+
+async function ensureWallet(db: D1Database, userId: string, plan: string) {
+  const wallet = await db.prepare('SELECT tenant_id FROM tenant_wallets WHERE tenant_id = ?').bind(userId).first();
+  if (wallet) return;
+  const tier = COMPUTE_TIERS[plan] || COMPUTE_TIERS.free;
+  await db.prepare('INSERT OR REPLACE INTO tenant_wallets (tenant_id, organization_name, tier, credit_balance_usd, monthly_spend_cap_usd, monthly_usage_usd, active_sandboxes) VALUES (?, ?, ?, ?, ?, 0, 0)').bind(userId, '', plan, tier.computeCreditsUsd, tier.computeCreditsUsd).run();
 }
 
 function filterPricing(params: URLSearchParams): ModelPricing[] {
@@ -666,6 +691,92 @@ export default {
       if (path === '/api/credits/ledger' && method === 'GET') {
         const ledger = await env.DB.prepare('SELECT * FROM credit_ledger WHERE user_id = ? ORDER BY created_at DESC LIMIT 50').bind(bearerUser.id).all();
         return json({ ledger: ledger.results });
+      }
+
+      // Usage analytics
+      if (path === '/api/usage' && method === 'GET') {
+        const days = Math.min(parseInt(url.searchParams.get('days') || '14'), 90);
+        const since = new Date(Date.now() - days * 86400000).toISOString();
+        const byDay = await env.DB.prepare(`SELECT substr(created_at, 1, 10) as day, COUNT(*) as requests, SUM(credits_used) as credits FROM api_usage WHERE user_id = ? AND created_at >= ? AND endpoint != '_ratelimit_check' GROUP BY day ORDER BY day`).bind(bearerUser.id, since).all();
+        const byEndpoint = await env.DB.prepare(`SELECT endpoint, COUNT(*) as requests, SUM(credits_used) as credits FROM api_usage WHERE user_id = ? AND endpoint != '_ratelimit_check' GROUP BY endpoint ORDER BY requests DESC`).bind(bearerUser.id).all();
+        const totals = await env.DB.prepare(`SELECT COUNT(*) as total_requests, COALESCE(SUM(credits_used),0) as total_credits FROM api_usage WHERE user_id = ? AND endpoint != '_ratelimit_check'`).bind(bearerUser.id).first() as any;
+        const recent = await env.DB.prepare(`SELECT id, endpoint, credits_used, created_at FROM api_usage WHERE user_id = ? AND endpoint != '_ratelimit_check' ORDER BY created_at DESC LIMIT 50`).bind(bearerUser.id).all();
+        return json({
+          summary: { total_requests: totals?.total_requests || 0, total_credits: totals?.total_credits || 0 },
+          by_day: byDay.results,
+          by_endpoint: byEndpoint.results,
+          recent: recent.results,
+        });
+      }
+
+      // Compute: wallet + sandboxes + usage
+      if (path === '/api/compute' && method === 'GET') {
+        const plan = await getUserPlan(env.DB, bearerUser.id);
+        await ensureWallet(env.DB, bearerUser.id, plan);
+        const wallet = await env.DB.prepare('SELECT * FROM tenant_wallets WHERE tenant_id = ?').bind(bearerUser.id).first();
+        const sandboxes = await env.DB.prepare('SELECT sandbox_id, daytona_sandbox_id, status, resource_type, vcpu_count, memory_mb, gpu_type, created_at FROM compute_sandboxes WHERE tenant_id = ? ORDER BY created_at DESC LIMIT 50').bind(bearerUser.id).all();
+        const usage = await env.DB.prepare(`SELECT resource_type, SUM(units_consumed) as total_units, SUM(apipoints_retail_charged) as total_retail FROM compute_usage_ledger WHERE tenant_id = ? AND timestamp >= date('now', 'start of month') GROUP BY resource_type`).bind(bearerUser.id).all();
+        return json({ wallet, sandboxes: sandboxes.results, usage_by_resource: usage.results, tier: COMPUTE_TIERS[plan] || COMPUTE_TIERS.free });
+      }
+
+      // Compute: create sandbox
+      if (path === '/api/compute/sandboxes' && method === 'POST') {
+        const plan = await getUserPlan(env.DB, bearerUser.id);
+        const tier = COMPUTE_TIERS[plan] || COMPUTE_TIERS.free;
+        if (!tier.canUseCompute) return json({ error: 'Compute requires a paid plan (Starter from £49/mo).' }, 402);
+
+        const wallet = await env.DB.prepare('SELECT * FROM tenant_wallets WHERE tenant_id = ?').bind(bearerUser.id).first() as any;
+        if (!wallet) return json({ error: 'Wallet not found' }, 404);
+        if ((wallet.credit_balance_usd || 0) <= 0) return json({ error: 'Insufficient compute credit balance.' }, 402);
+        const activeCount = await env.DB.prepare(`SELECT COUNT(*) as cnt FROM compute_sandboxes WHERE tenant_id = ? AND status IN ('running', 'provisioning')`).bind(bearerUser.id).first() as any;
+        if ((activeCount?.cnt || 0) >= tier.maxConcurrent) return json({ error: `Max concurrent sandboxes (${tier.maxConcurrent}) reached for ${plan} tier.` }, 429);
+
+        const body = await request.json() as any;
+        const { name, snapshot, vcpu_count, memory_mb, gpu_type } = body;
+        const sandboxId = generateId();
+        const daytonaPayload: any = { name: name || `sandbox-${sandboxId.slice(0, 8)}` };
+        if (snapshot) {
+          daytonaPayload.snapshot = snapshot;
+        } else {
+          const wantCpu = vcpu_count || 1;
+          const wantMem = memory_mb || 512;
+          daytonaPayload.snapshot = wantCpu > 2 || wantMem > 4096 ? 'daytona-large' : wantCpu > 1 || wantMem > 1024 ? 'daytona-medium' : 'daytona-small';
+        }
+        if (gpu_type) daytonaPayload.gpu = gpu_type;
+
+        if (!env.DAYTONA_API_KEY) return json({ error: 'Compute not configured' }, 503);
+        const daytonaBase = env.DAYTONA_BASE_URL || 'https://app.daytona.io/api';
+        const res = await fetch(`${daytonaBase}/sandbox`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${env.DAYTONA_API_KEY}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify(daytonaPayload),
+        });
+        const daytonaText = await res.text();
+        let daytonaData: any = {};
+        try { daytonaData = JSON.parse(daytonaText); } catch { if (!res.ok) return json({ error: `Daytona sandbox creation failed (${res.status})` }, res.status); }
+        if (!res.ok) return json({ error: daytonaData.message || 'Daytona sandbox creation failed' }, res.status);
+
+        const status = daytonaData.status || 'running';
+        await env.DB.prepare(`INSERT INTO compute_sandboxes (sandbox_id, tenant_id, daytona_sandbox_id, status, resource_type, vcpu_count, memory_mb, gpu_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`).bind(sandboxId, bearerUser.id, daytonaData.id || daytonaData.sandboxId, status, gpu_type ? 'gpu' : 'vcpu', vcpu_count || 1, memory_mb || 512, gpu_type || '').run();
+        if (status === 'running' || status === 'provisioning') {
+          await env.DB.prepare(`UPDATE tenant_wallets SET active_sandboxes = active_sandboxes + 1, updated_at = datetime('now') WHERE tenant_id = ?`).bind(bearerUser.id).run();
+        }
+        return json({ sandbox_id: sandboxId, daytona_id: daytonaData.id || daytonaData.sandboxId, status, vcpu_count: vcpu_count || 1, memory_mb: memory_mb || 512, gpu_type: gpu_type || null, tier: plan });
+      }
+
+      // Compute: destroy sandbox
+      if (path.startsWith('/api/compute/sandboxes/') && method === 'DELETE') {
+        const sandboxId = path.split('/').pop();
+        const sandbox = await env.DB.prepare('SELECT * FROM compute_sandboxes WHERE sandbox_id = ? AND tenant_id = ?').bind(sandboxId, bearerUser.id).first() as any;
+        if (!sandbox) return json({ error: 'Sandbox not found' }, 404);
+
+        if (sandbox.daytona_sandbox_id && env.DAYTONA_API_KEY) {
+          const daytonaBase = env.DAYTONA_BASE_URL || 'https://app.daytona.io/api';
+          await fetch(`${daytonaBase}/sandbox/${sandbox.daytona_sandbox_id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${env.DAYTONA_API_KEY}` } });
+        }
+        await env.DB.prepare(`UPDATE compute_sandboxes SET status = 'destroyed', stopped_at = datetime('now') WHERE sandbox_id = ?`).bind(sandboxId).run();
+        await env.DB.prepare(`UPDATE tenant_wallets SET active_sandboxes = (SELECT COUNT(*) FROM compute_sandboxes WHERE tenant_id = ? AND status IN ('running', 'provisioning')), updated_at = datetime('now') WHERE tenant_id = ?`).bind(bearerUser.id, bearerUser.id).run();
+        return json({ sandbox_id: sandboxId, status: 'destroyed' });
       }
 
       // Agents
